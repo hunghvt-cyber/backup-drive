@@ -146,7 +146,8 @@ jobs:
           sort -u .sync-state/ignored-files.txt \
             -o .sync-state/ignored-files.txt
 
-          if [ -d "$HOME/.cache/rclone/bisync" ] && \
+          if [ ! -f .sync-state/resync-pending ] && \
+             [ -d "$HOME/.cache/rclone/bisync" ] && \
              find "$HOME/.cache/rclone/bisync" \
              -type f -print -quit | grep -q .; then
 
@@ -199,6 +200,8 @@ jobs:
 
           BACKUP_DIR2="koofr:/GoogleBackup-Trash/$(date -u +%Y-%m-%d_%H%M%S)"
 
+          RESYNC_RUN=false
+
           COMMON_ARGS=(
             "--fast-list"
             "--drive-acknowledge-abuse"
@@ -230,6 +233,7 @@ jobs:
 
           if [ "${{ inputs.resync }}" = "true" ]; then
 
+            RESYNC_RUN=true
             echo "[MODE] MANUAL RESYNC"
 
             timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
@@ -252,6 +256,7 @@ jobs:
 
           else
 
+            RESYNC_RUN=true
             echo "[MODE] INITIAL RESYNC"
 
             timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
@@ -264,6 +269,17 @@ jobs:
           fi
 
           RC=${PIPESTATUS[0]}
+
+          # A timed-out initial resync has not established a trusted baseline.
+          # Continue it next day, comparing existing files with --checksum.
+          if [ "$RC" = 124 ] && [ "$RESYNC_RUN" = true ]; then
+            touch .sync-state/resync-pending
+          elif [ "$RC" = 0 ]; then
+            rm -f .sync-state/resync-pending
+          else
+            # Real errors must remain fatal, without scheduling an automatic resync.
+            rm -f .sync-state/resync-pending
+          fi
 
           echo "rclone_exit_code=$RC" >> "$GITHUB_OUTPUT"
 
@@ -361,6 +377,12 @@ jobs:
             2>&1 | tee "$RETRY_LOG"
 
           RC=${PIPESTATUS[0]}
+
+          if [ "$RC" = 124 ]; then
+            touch .sync-state/resync-pending
+          else
+            rm -f .sync-state/resync-pending
+          fi
 
           echo "retry_exit_code=$RC" >> "$GITHUB_OUTPUT"
 
