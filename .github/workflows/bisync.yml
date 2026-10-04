@@ -113,6 +113,7 @@ jobs:
       # 5. Restore ignored files
       # ============================================================
       - name: Restore Ignored Files
+        id: ignored_cache
         if: ${{ inputs.reset != true }}
         uses: actions/cache/restore@v4
         with:
@@ -122,6 +123,16 @@ jobs:
             rclone-ignored-files-${{ github.ref_name }}-
             rclone-ignored-files-
 
+
+      # Run #62 failed before restoring state but cached an empty ignore list.
+      # Recover the last known populated cache only when that exact bad key wins.
+      - name: Recover Ignore Cache After Configuration Failure
+        if: ${{ inputs.reset != true && steps.ignored_cache.outputs.cache-matched-key == 'rclone-ignored-files-main-37156780658' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: .sync-state
+          key: rclone-ignored-files-main-37074336340
+          fail-on-cache-miss: true
 
       # ============================================================
       # 6. Prepare state
