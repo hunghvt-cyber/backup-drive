@@ -83,7 +83,16 @@ jobs:
 
           echo ""
           echo "Testing Koofr..."
-          rclone lsd koofr:GoogleBackup --max-depth 1
+          # Retry only the read-only connectivity check for temporary service errors.
+          for attempt in 1 2 3; do
+            if rclone lsd koofr:GoogleBackup --max-depth 1; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
 
 
       # ============================================================
@@ -127,6 +136,9 @@ jobs:
             echo "[MODE] CLEAN RESET"
             rm -rf "$HOME/.cache/rclone/bisync" .sync-state
           fi
+
+          # Share one time budget across the initial run and an optional retry.
+          echo "BISYNC_DEADLINE=$(( $(date +%s) + 300 * 60 ))" >> "$GITHUB_ENV"
 
           mkdir -p .sync-state
           touch .sync-state/ignored-files.txt
@@ -182,6 +194,7 @@ jobs:
         run: |
           set +e
 
+          SYNC_REMAINING=$((BISYNC_DEADLINE - $(date +%s)))
           LOG_FILE="$GITHUB_WORKSPACE/bisync.log"
 
           BACKUP_DIR2="koofr:/GoogleBackup-Trash/$(date -u +%Y-%m-%d_%H%M%S)"
@@ -195,6 +208,12 @@ jobs:
             "$BACKUP_DIR2"
             "--recover"
             "--resilient"
+            "--tpslimit"
+            "5"
+            "--tpslimit-burst"
+            "5"
+            "--max-lock"
+            "2m"
             "--checksum"
             "--transfers"
             "8"
@@ -213,7 +232,7 @@ jobs:
 
             echo "[MODE] MANUAL RESYNC"
 
-            rclone bisync \
+            timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
               gdrive:/ \
               koofr:/GoogleBackup \
               --resync \
@@ -224,7 +243,7 @@ jobs:
 
             echo "[MODE] NORMAL BISYNC"
 
-            rclone bisync \
+            timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
               gdrive:/ \
               koofr:/GoogleBackup \
               --track-renames \
@@ -235,7 +254,7 @@ jobs:
 
             echo "[MODE] INITIAL RESYNC"
 
-            rclone bisync \
+            timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
               gdrive:/ \
               koofr:/GoogleBackup \
               --resync \
@@ -259,7 +278,7 @@ jobs:
       # ============================================================
       - name: Parse Bisync Errors
         id: parse_errors
-        if: always()
+        if: always() && hashFiles('bisync.log') != ''
         run: |
           python3 scripts/bisync-helper.py \
             parse \
@@ -304,6 +323,13 @@ jobs:
 
           echo ""
 
+          SYNC_REMAINING=$((BISYNC_DEADLINE - $(date +%s)))
+          if [ "$SYNC_REMAINING" -lt 120 ]; then
+            echo "Not enough time for retry; ignored files will be retained for the next run."
+            echo "retry_exit_code=124" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # Previous bisync was aborted.
           # Rebuild baseline using the updated filter.
           rm -rf "$HOME/.cache/rclone/bisync"
@@ -312,7 +338,7 @@ jobs:
 
           RETRY_BACKUP_DIR2="koofr:/GoogleBackup-Trash/$(date -u +%Y-%m-%d_%H%M%S)-retry"
 
-          rclone bisync \
+          timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
             gdrive:/ \
             koofr:/GoogleBackup \
             --resync \
@@ -322,6 +348,9 @@ jobs:
             --backup-dir2 "$RETRY_BACKUP_DIR2" \
             --recover \
             --resilient \
+            --tpslimit 5 \
+            --tpslimit-burst 5 \
+            --max-lock 2m \
             --checksum \
             --transfers 8 \
             --checkers 16 \
@@ -357,8 +386,24 @@ jobs:
       # ============================================================
       # 13. Save bisync state
       # ============================================================
+      - name: Check Bisync State To Save
+        id: state_to_save
+        if: always() && steps.state.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATE_DIR="$HOME/.cache/rclone/bisync"
+          if [ -d "$STATE_DIR" ] && \
+             [ -n "$(find "$STATE_DIR" -type f -print -quit)" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Bisync state found; saving for the next run."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No bisync state files to save."
+          fi
+
       - name: Save Bisync State
-        if: always() && hashFiles('/home/runner/.cache/rclone/bisync/**') != ''
+        if: always() && steps.state_to_save.outputs.exists == 'true'
         uses: actions/cache/save@v4
         with:
           path: ~/.cache/rclone/bisync
@@ -369,7 +414,7 @@ jobs:
       # 14. Save ignored files
       # ============================================================
       - name: Save Ignored Files
-        if: always()
+        if: always() && steps.state.outcome == 'success'
         uses: actions/cache/save@v4
         with:
           path: .sync-state
