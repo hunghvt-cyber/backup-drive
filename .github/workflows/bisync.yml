@@ -31,7 +31,7 @@ jobs:
     # GitHub-hosted runner có giới hạn cứng 360 phút/job (6 giờ),
     # không thể vượt qua dù đặt cao hơn. Đặt sát mức này để tận
     # dụng tối đa thời gian cho lần resync đầu tiên (~92GB).
-    timeout-minutes: 350
+    timeout-minutes: 330
 
     steps:
 
@@ -149,6 +149,8 @@ jobs:
           fi
 
           # Share one time budget across the initial run and an optional retry.
+          # Give rclone at most 5 hours. The job keeps a separate 30-minute
+          # reserve for parsing, cache/state save, artifact upload and summary.
           echo "BISYNC_DEADLINE=$(( $(date +%s) + 300 * 60 ))" >> "$GITHUB_ENV"
 
           mkdir -p .sync-state
@@ -537,6 +539,15 @@ jobs:
 
           if [ "${RC:-1}" = "0" ]; then
             echo "BISYNC SUCCESS"
+            exit 0
+          fi
+
+          # Exit 124 is our intentional 5-hour sync budget, not a data error.
+          # For an unfinished resync, resync-pending was saved above so the
+          # next scheduled run continues rebuilding the baseline.
+          if [ "${RC:-1}" = "124" ]; then
+            echo "::warning::5-hour sync budget reached. State/report were saved; the next scheduled run will continue."
+            echo "BISYNC PAUSED AT 5-HOUR BUDGET"
             exit 0
           fi
 
