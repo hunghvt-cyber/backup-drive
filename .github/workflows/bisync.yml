@@ -566,23 +566,33 @@ jobs:
           echo "No unsafe automatic resync was performed."
           exit 1
 
-      # Notify Homepage NAS after report/artifact are available, even if bisync failed.
-      # Optional: no effect on backup result when token is not configured.
-      - name: Notify Homepage NAS
+      # Publish a small summary directly from local logs, without fetching GitHub logs again.
+      # This step is optional and never changes the backup result.
+      - name: Publish latest backup metrics to Homepage NAS
         if: always() && steps.bisync.outcome != 'skipped'
         continue-on-error: true
         shell: bash
         env:
           HOMEPAGE_DISPATCH_TOKEN: ${{ secrets.HOMEPAGE_DISPATCH_TOKEN }}
+          RCLONE_RC: ${{ steps.bisync.outputs.rclone_exit_code }}
+          RETRY_RC: ${{ steps.retry.outputs.retry_exit_code }}
+          NEW_IGNORED: ${{ steps.parse_errors.outputs.new_ignored }}
         run: |
           if [ -z "$HOMEPAGE_DISPATCH_TOKEN" ]; then
-            echo "::notice::Set HOMEPAGE_DISPATCH_TOKEN to enable Homepage NAS reports."
+            echo "::notice::Set HOMEPAGE_DISPATCH_TOKEN to enable homepage report publishing."
             exit 0
           fi
+          python3 scripts/backup-summary.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("backup-summary.json").read_text())
+          Path("backup-dispatch.json").write_text(json.dumps({"event_type":"backup_completed","client_payload":report}))
+          PY
           curl --fail --show-error --silent --retry 3 \
             --request POST \
             --header "Accept: application/vnd.github+json" \
             --header "Authorization: Bearer $HOMEPAGE_DISPATCH_TOKEN" \
             --header "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/hunghvt-cyber/Homepage-nas/dispatches \
-            --data '{"event_type":"backup_completed"}'
+            --data-binary @backup-dispatch.json
