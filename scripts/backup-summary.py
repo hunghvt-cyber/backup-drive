@@ -12,7 +12,7 @@ stats=re.findall(r"Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB)\s*/\s*[\d.]+\s*(?:GiB
 if not stats:
     stats=re.findall(r"Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB).*?,\s*([\d.]+)\s*(MiB|KiB|GiB)/s",text,re.I)
 def conv(v,unit,base):
-    return round(float(v)*1024**({"KiB":-1,"MiB":0,"GiB":1,"TiB":2}[unit.title().replace("Kib","KiB").replace("Mib","MiB").replace("Gib","GiB").replace("Tib","TiB")]-base),3)
+    return round(float(v)*1024**({"kib":-1,"mib":0,"gib":1,"tib":2}[unit.lower()]-base),3)
 amount=speed=None
 if stats:
     v,u,v2,u2=stats[-1]
