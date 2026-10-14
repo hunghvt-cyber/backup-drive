@@ -102,7 +102,7 @@ jobs:
         if: ${{ inputs.reset != true }}
         uses: actions/cache/restore@v4
         with:
-          path: ~/.cache/rclone/bisync
+          path: ~/.cache/rclone
           key: rclone-bisync-state-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             rclone-bisync-state-${{ github.ref_name }}-
@@ -441,7 +441,7 @@ jobs:
         if: always() && steps.state_to_save.outputs.exists == 'true'
         uses: actions/cache/save@v4
         with:
-          path: ~/.cache/rclone/bisync
+          path: ~/.cache/rclone
           key: rclone-bisync-state-${{ github.ref_name }}-${{ github.run_id }}
 
 
