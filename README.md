@@ -39,3 +39,9 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 ## Xem báo cáo hằng ngày
 
 Vào [Actions → Two-Way Sync](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml), mở lượt chạy mới nhất, xem **Summary** và tải artifact `bisync-report-<run_id>` để đọc `bisync.log` và danh sách file bỏ qua.
+
+## Homepage backup report (Vercel Blob)
+
+After each daily run, the workflow generates a **sanitized public JSON report** from its existing local log/health artifact and publishes it to a dedicated public Vercel Blob store. Publication is best-effort and does not change the backup result. Configure the repository Actions secret `BLOB_READ_WRITE_TOKEN` for that store; no GitHub cross-repository token is needed. If the secret is missing, the step skips with a notice. Never publish raw logs, file names, or credentials.
+
+Source of truth for schema, URL configuration, setup, troubleshooting and AI handover: [Homepage-nas/docs/BACKUP-REPORTING.md](https://github.com/hunghvt-cyber/Homepage-nas/blob/main/docs/BACKUP-REPORTING.md).
