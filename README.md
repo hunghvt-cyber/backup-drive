@@ -30,8 +30,10 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 
 ## Lịch chạy và an toàn
 
-- Đồng bộ hằng ngày theo lịch GitHub Actions (xem [workflow](.github/workflows/bisync.yml)).
-- Giới hạn tối đa **5 giờ** cho Rclone, dành thời gian còn lại để lưu cache và xuất báo cáo.
+- Đồng bộ hằng ngày lúc **02:00 giờ Việt Nam** theo [workflow](.github/workflows/bisync.yml).
+- **Tự động:** Tối đa **35 phút/job**, gồm **29 phút** cho Rclone Bisync và thời gian dự phòng để dừng có kiểm soát, lưu state/cache, artifact và báo cáo. Không dùng hết 5h30 mỗi ngày vì GitHub Actions private có hạn mức miễn phí theo **tháng**.
+- **Khôi phục thủ công khi thật cần thiết:** Actions → Run workflow → `extended_budget=true` để cho phép lại **330 phút/job, 300 phút rclone**. Tùy chọn này không tự bật và có nguy cơ tiêu tốn hạn mức miễn phí; `resync/reset` chỉ chọn khi hiểu rõ hậu quả.
+- Ngân sách chung của Drive + Google Photos: [FREE_TIER_BUDGET.md](https://github.com/hunghvt-cyber/google-photos-koofr/blob/main/docs/FREE_TIER_BUDGET.md). Lịch Photos Daily giữ hằng ngày; Historical Backfill chạy 4 ngày/tuần để ít tốn overhead Chrome hơn.
 - Duy trì trạng thái Bisync giữa các lượt chạy; resync ban đầu chưa hoàn tất sẽ tiếp tục ở lượt sau.
 - `--max-delete 25`, `--backup-dir2`, `--recover`, `--resilient`, `--checksum`.
 - File không đồng bộ được sẽ được ghi nhận trong danh sách bỏ qua; không nên coi là đã backup.
