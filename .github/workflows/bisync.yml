@@ -17,6 +17,11 @@ on:
         required: false
         type: boolean
         default: false
+      extended_budget:
+        description: 'CHỈ chạy thủ công khi cần resync lớn: tối đa 5h30, có thể vượt hạn mức miễn phí tháng.'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: gdrive-koofr-bisync
@@ -28,10 +33,10 @@ permissions:
 jobs:
   run-bisync:
     runs-on: ubuntu-latest
-    # GitHub-hosted runner có giới hạn cứng 360 phút/job (6 giờ),
-    # không thể vượt qua dù đặt cao hơn. Đặt sát mức này để tận
-    # dụng tối đa thời gian cho lần resync đầu tiên (~92GB).
-    timeout-minutes: 330
+    # Scheduled normal sync: at most 35 min including setup, state cache,
+    # logs, artifacts and report. Only EXPLICIT manual extended_budget=true
+    # allows the exceptional 5h30 rescue/resync path.
+    timeout-minutes: ${{ (github.event_name == 'workflow_dispatch' && inputs.extended_budget == true) && 330 || 35 }}
 
     steps:
 
@@ -148,10 +153,20 @@ jobs:
             rm -rf "$HOME/.cache/rclone/bisync" .sync-state
           fi
 
-          # Share one time budget across the initial run and an optional retry.
-          # Give rclone at most 5 hours. The job keeps a separate 30-minute
-          # reserve for parsing, cache/state save, artifact upload and summary.
-          echo "BISYNC_DEADLINE=$(( $(date +%s) + 300 * 60 ))" >> "$GITHUB_ENV"
+          # One shared deadline for initial bisync + optional retry.
+          # Standard scheduled run: 29 min rclone (plus up to 2 min SIGINT
+          # graceful stop); 35 min job cap leaves time to save cache/logs.
+          # Manual extended mode restores the former 300-min sync budget.
+          if [ "${{ inputs.extended_budget }}" = "true" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            BISYNC_MINUTES=300
+            echo "::warning::Extended 5h30 mode is manual-only and may consume paid Actions minutes."
+          else
+            BISYNC_MINUTES=29
+          fi
+          echo "BISYNC_DEADLINE=$(( $(date +%s) + BISYNC_MINUTES * 60 ))" >> "$GITHUB_ENV"
+          echo "BISYNC_BUDGET_MINUTES=$BISYNC_MINUTES" >> "$GITHUB_ENV"
+          echo "BISYNC_BUDGET_START=$(date -u +%FT%TZ)" >> "$GITHUB_ENV"
+          echo "BISYNC_BUDGET=$BISYNC_MINUTES minutes; reserves remain for state and reports."
 
           mkdir -p .sync-state
           touch .sync-state/ignored-files.txt
@@ -542,12 +557,13 @@ jobs:
             exit 0
           fi
 
-          # Exit 124 is our intentional 5-hour sync budget, not a data error.
+          # Exit 124 means the configured bisync runtime budget was reached,
+          # not necessarily a data error. Persisted state is kept for the next day.
           # For an unfinished resync, resync-pending was saved above so the
           # next scheduled run continues rebuilding the baseline.
           if [ "${RC:-1}" = "124" ]; then
-            echo "::warning::5-hour sync budget reached. State/report were saved; the next scheduled run will continue."
-            echo "BISYNC PAUSED AT 5-HOUR BUDGET"
+            echo "::warning::Bisync budget (${BISYNC_BUDGET_MINUTES:-29} min) reached. Cache/ignored-file state and logs were saved; next run will continue."
+            echo "BISYNC PAUSED AT ${BISYNC_BUDGET_MINUTES:-29}-MIN BUDGET"
             exit 0
           fi
 
