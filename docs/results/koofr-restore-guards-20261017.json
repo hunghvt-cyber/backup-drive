@@ -1,0 +1,839 @@
+{
+  "kind": "KOOFR_RESTORE_GUARD_LIVE",
+  "at": "2026-10-17T04:35:58.920Z",
+  "deployedCode": "a6a62ffd8329274cd2e9f302c5bc4d25c0717295",
+  "deploymentId": "dpl_7wkGc3aUwvmXj3q7U33DcomTVv7S",
+  "endpoint": "https://homepage-koofr-gd7ag1j55-hunghvt.vercel.app/api/bench",
+  "passed": true,
+  "completed": true,
+  "stages": [
+    {
+      "status": 200,
+      "code": "STORE100_VERIFIED",
+      "passed": true,
+      "stage": "restore-guards",
+      "checks": {
+        "incompleteRestoreBlocksOwnerMutations": true,
+        "lateRestoreRetryCannotOverwriteEdit": true,
+        "completedChunkReplayWithoutWrite": true
+      },
+      "details": {
+        "notes": 2
+      },
+      "metrics": [
+        {
+          "operation": "restore-initialize",
+          "code": "OK",
+          "committed": true,
+          "ms": 992.4427839999989,
+          "providerCalls": 5
+        },
+        {
+          "operation": "list-notes",
+          "code": "RESTORE_INCOMPLETE",
+          "committed": false,
+          "ms": 268.95688599999994,
+          "providerCalls": 3
+        },
+        {
+          "operation": "create-folder",
+          "code": "RESTORE_INCOMPLETE",
+          "committed": false,
+          "ms": 245.65854799999943,
+          "providerCalls": 3
+        },
+        {
+          "operation": "delete-folder",
+          "code": "RESTORE_INCOMPLETE",
+          "committed": false,
+          "ms": 266.3435309999986,
+          "providerCalls": 3
+        },
+        {
+          "operation": "create-share",
+          "code": "RESTORE_INCOMPLETE",
+          "committed": false,
+          "ms": 266.50064899999416,
+          "providerCalls": 3
+        },
+        {
+          "operation": "soft-delete",
+          "code": "RESTORE_INCOMPLETE",
+          "committed": false,
+          "ms": 233.812039000004,
+          "providerCalls": 3
+        },
+        {
+          "operation": "restore-batch",
+          "code": "OK",
+          "committed": true,
+          "ms": 2757.194435999998,
+          "providerCalls": 11
+        },
+        {
+          "operation": "restore-batch",
+          "code": "OK",
+          "committed": false,
+          "ms": 216.00644900000043,
+          "providerCalls": 3
+        },
+        {
+          "operation": "get-note",
+          "code": "OK",
+          "committed": false,
+          "ms": 337.5072379999983,
+          "providerCalls": 4
+        },
+        {
+          "operation": "save-note",
+          "code": "OK",
+          "committed": true,
+          "ms": 2168.8024089999963,
+          "providerCalls": 9
+        },
+        {
+          "operation": "restore-batch",
+          "code": "RESTORE_ALREADY_COMPLETED_AND_EDITED",
+          "committed": false,
+          "ms": 247.33543700000155,
+          "providerCalls": 3
+        },
+        {
+          "operation": "get-note",
+          "code": "OK",
+          "committed": false,
+          "ms": 429.78209600000264,
+          "providerCalls": 4
+        }
+      ],
+      "calls": [
+        {
+          "label": "new-store",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "dnsMs": 1.6868580000009388,
+            "tcpMs": 8.541732999998203,
+            "tlsMs": 18.559453000001668,
+            "ttfbMs": 119.08345299999928,
+            "reusedSocket": false
+          },
+          "ms": 119.91049699999712
+        },
+        {
+          "label": "seed-catalog",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 649.168995,
+            "reusedSocket": true
+          },
+          "ms": 649.949652000003
+        },
+        {
+          "label": "seed-catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 186.89108900000429,
+            "reusedSocket": true
+          },
+          "ms": 187.4903259999992
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 32.828747999999905,
+            "reusedSocket": true
+          },
+          "ms": 33.49757700000191
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 167.3588660000023,
+            "reusedSocket": true
+          },
+          "ms": 168.050774000003
+        },
+        {
+          "label": "catalog-publish",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 611.6855399999986,
+            "reusedSocket": true
+          },
+          "ms": 612.7945220000038
+        },
+        {
+          "label": "catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 158.52241499999946,
+            "reusedSocket": true
+          },
+          "ms": 159.29976700000407
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 17.77123899999424,
+            "reusedSocket": true
+          },
+          "ms": 18.30963000000338
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 68.64686800000345,
+            "reusedSocket": true
+          },
+          "ms": 69.21307900000102
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 187.30666599999677,
+            "reusedSocket": true
+          },
+          "ms": 187.86837299999752
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 10.505714999999327,
+            "reusedSocket": true
+          },
+          "ms": 11.233731000000262
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 47.784749999998894,
+            "reusedSocket": true
+          },
+          "ms": 48.5714650000009
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 182.84055100000114,
+            "reusedSocket": true
+          },
+          "ms": 183.46590999999898
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 12.516461999999592,
+            "reusedSocket": true
+          },
+          "ms": 13.294205000005604
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 67.52901099999872,
+            "reusedSocket": true
+          },
+          "ms": 68.30670400000236
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 187.4273269999976,
+            "reusedSocket": true
+          },
+          "ms": 188.0930870000011
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 8.868266000004951,
+            "reusedSocket": true
+          },
+          "ms": 9.52783400000044
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 49.37854399999924,
+            "reusedSocket": true
+          },
+          "ms": 50.063296000000264
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 204.2312729999976,
+            "reusedSocket": true
+          },
+          "ms": 204.75588300000527
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 10.505364000004192,
+            "reusedSocket": true
+          },
+          "ms": 11.23669200000586
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 31.520110000004934,
+            "reusedSocket": true
+          },
+          "ms": 32.24274499999592
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 139.35922299999947,
+            "reusedSocket": true
+          },
+          "ms": 140.16087900000275
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 60.44007099999726,
+            "reusedSocket": true
+          },
+          "ms": 60.947187000005215
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 47.184251999999105,
+            "reusedSocket": true
+          },
+          "ms": 48.05691300000035
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 225.10353599999507,
+            "reusedSocket": true
+          },
+          "ms": 225.63081200000306
+        },
+        {
+          "label": "catalog-publish",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 581.7183040000018,
+            "reusedSocket": true
+          },
+          "ms": 582.445630999995
+        },
+        {
+          "label": "catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 204.8682090000002,
+            "reusedSocket": true
+          },
+          "ms": 205.58110300000408
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 11.654594999999972,
+            "reusedSocket": true
+          },
+          "ms": 12.200962000002619
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 38.215251000001444,
+            "reusedSocket": true
+          },
+          "ms": 39.07407100000273
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 165.37855999999738,
+            "reusedSocket": true
+          },
+          "ms": 166.13134100000025
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 9.876388000004226,
+            "reusedSocket": true
+          },
+          "ms": 10.536807000004046
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 70.11530499999935,
+            "reusedSocket": true
+          },
+          "ms": 70.6137000000017
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 119.2232570000051,
+            "reusedSocket": true
+          },
+          "ms": 119.90508799999952
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 8.924160999995365,
+            "reusedSocket": true
+          },
+          "ms": 9.446066000004066
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 44.57747499999823,
+            "reusedSocket": true
+          },
+          "ms": 45.08888699999807
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 122.50484099999449,
+            "reusedSocket": true
+          },
+          "ms": 123.2982570000022
+        },
+        {
+          "label": "catalog-publish",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 714.4349540000039,
+            "reusedSocket": true
+          },
+          "ms": 714.9840659999973
+        },
+        {
+          "label": "catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 218.28643300000113,
+            "reusedSocket": true
+          },
+          "ms": 218.79836600000272
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 11.440946000002441,
+            "reusedSocket": true
+          },
+          "ms": 12.097344000001613
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 58.28404700000101,
+            "reusedSocket": true
+          },
+          "ms": 58.95266000000265
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 175.72617900000478,
+            "reusedSocket": true
+          },
+          "ms": 176.22990299999947
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 11.164167999995698,
+            "reusedSocket": true
+          },
+          "ms": 11.932151999993948
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 42.466590000003634,
+            "reusedSocket": true
+          },
+          "ms": 43.142556999999215
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 190.95279300000402,
+            "reusedSocket": true
+          },
+          "ms": 191.611748000003
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 8.746994000000996,
+            "reusedSocket": true
+          },
+          "ms": 9.183450999997149
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "timing": {
+            "ttfbMs": 58.30897200000618,
+            "reusedSocket": true
+          },
+          "ms": 59.11897700000554
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 699.2519800000009,
+            "reusedSocket": false
+          },
+          "ms": 699.953975999997
+        },
+        {
+          "label": "immutable-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 741.0886300000057,
+            "reusedSocket": false
+          },
+          "ms": 741.9302840000018
+        },
+        {
+          "label": "immutable-note-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 136.36448800000653,
+            "reusedSocket": true
+          },
+          "ms": 136.9211809999979
+        },
+        {
+          "label": "immutable-note-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 136.31410799999867,
+            "reusedSocket": true
+          },
+          "ms": 136.83819299999595
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "timing": {
+            "ttfbMs": 117.36483600000065,
+            "reusedSocket": false
+          },
+          "ms": 118.07370500000252
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1175.979707999999,
+            "reusedSocket": false
+          },
+          "ms": 1176.7770079999973
+        },
+        {
+          "label": "immutable-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 386.7404270000043,
+            "reusedSocket": false
+          },
+          "ms": 387.44559899999877
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "timing": {
+            "ttfbMs": 42.28399299999728,
+            "reusedSocket": true
+          },
+          "ms": 42.94709200000216
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 676.9220750000022,
+            "reusedSocket": true
+          },
+          "ms": 677.3486740000008
+        },
+        {
+          "label": "immutable-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 195.45684600000095,
+            "reusedSocket": true
+          },
+          "ms": 196.1995739999984
+        },
+        {
+          "label": "immutable-note-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 185.10044500000367,
+            "reusedSocket": true
+          },
+          "ms": 185.59755399999995
+        }
+      ],
+      "ms": 16923.456202,
+      "requestId": "6e71d86b-eaa2-4e5a-b5ff-0a2b729ce7f6",
+      "region": "fra1",
+      "authAndParseMs": 309.13306299999385,
+      "httpStatus": 200,
+      "wallMs": 17566.944767
+    }
+  ],
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "priorLockReconciliation": [
+    {
+      "namespace": "Homepage-Notes-Vercel-Probe-39002180348-ac469545-5839-43ff-b58c-491c3bee2d07",
+      "scope": "GitHub runner -> exact historical synthetic folder",
+      "acquisitionStatus": 200,
+      "released": true,
+      "unlockStatus": 204
+    },
+    {
+      "namespace": "Homepage-Notes-Vercel-Probe-39002374539-3c7e20cc-f099-4ec8-990e-3e74e7384ce0",
+      "scope": "GitHub runner -> exact historical synthetic folder",
+      "acquisitionStatus": 200,
+      "released": true,
+      "unlockStatus": 204
+    }
+  ],
+  "sourceNamespace": "Homepage-Notes-Vercel-Probe-39003147952-0c887f18-1451-4120-967e-ab66d63c8778",
+  "restoreNamespace": "Homepage-Notes-Vercel-Probe-39003147952-5703f23f-a57a-4aea-8d21-b25c30fec611",
+  "region": "fra1",
+  "summary": {
+    "save-note": {
+      "attempted": 1,
+      "successful": {
+        "n": 1,
+        "p50": 2168.8024089999963,
+        "p95": 2168.8024089999963,
+        "max": 2168.8024089999963
+      },
+      "committedOnly": {
+        "n": 1,
+        "p50": 2168.8024089999963,
+        "p95": 2168.8024089999963,
+        "max": 2168.8024089999963
+      },
+      "codes": {
+        "OK": 1
+      }
+    },
+    "list-notes": {
+      "attempted": 1,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "RESTORE_INCOMPLETE": 1
+      }
+    },
+    "get-note": {
+      "attempted": 2,
+      "successful": {
+        "n": 2,
+        "p50": 337.5072379999983,
+        "p95": 429.78209600000264,
+        "max": 429.78209600000264
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "OK": 2
+      }
+    },
+    "create-share": {
+      "attempted": 1,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "RESTORE_INCOMPLETE": 1
+      }
+    },
+    "revoke-share": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "seed-batch": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "restore-batch": {
+      "attempted": 3,
+      "successful": {
+        "n": 2,
+        "p50": 216.00644900000043,
+        "p95": 2757.194435999998,
+        "max": 2757.194435999998
+      },
+      "committedOnly": {
+        "n": 1,
+        "p50": 2757.194435999998,
+        "p95": 2757.194435999998,
+        "max": 2757.194435999998
+      },
+      "codes": {
+        "OK": 2,
+        "RESTORE_ALREADY_COMPLETED_AND_EDITED": 1
+      }
+    }
+  },
+  "verifiedOriginalNotes": 0
+}

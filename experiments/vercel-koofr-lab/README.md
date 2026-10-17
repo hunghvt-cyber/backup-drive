@@ -1,34 +1,40 @@
 # Koofr / Vercel isolated prototype
 
-Production Notes remains Vercel Blob. No production adapter, migration, UI or
-backup/report change is included here. Do not merge/deploy into Homepage/Home-AI.
+Production Notes remains Vercel Blob. No Homepage/Home-AI deployment, main merge,
+real Notes migration, existing backup workflow or NAS/report/GAS changes.
 
-Measured on17 October2026:80/80 verified saves;10/10 lock races;29/29 simulated
-tests. Frankfurt + explicit native HTTPS pool: n20, server p50=973ms, p95=1484ms;
-GitHub-driver API wall p50=1258ms, p95=1676ms. All five save requests are retained.
-Source/methodology/raw evidence: ../../docs/HOMEPAGE-KOOFR-WEBDAV-20261017.md.
+**Actual full-store trial passed:**100 original Notes read/verified, folders,
+checklists/history, note/folder share isolation and revoke, independent TLS-session
+same-base race, expired/revoked writer fencing, and104-record full restore
+(100 active +4 tombstones).43 simulations pass. A separate two-Note live follow-up
+verified incomplete restore and late chunk retry guards.
 
-- lib/storage.mjs: fixed synthetic path, LOCK/base revision/PUT/readback/UNLOCK;
-  op receipts/replay; ambiguous PUT read reconciliation; fail-closed conflicts.
-- lib/oidc.mjs: GitHub Actions signed OIDC identity, exact repo/branch/workflow.
-- api/bench.js: bounded POST benchmark, sanitized metadata log/request ID, no secret
-  environment variables or persistent credential storage. Auto-expires18 October
-  at10:00 Vietnam time. Public GET health has no storage access.
-- vercel.json: Frankfurt candidate. Also set the dedicated project's resourceConfig
-  functionDefaultRegions to fra1; verify region in responses after deployment.
-- ../../scripts/koofr_vercel_bench.mjs and workflow koofr-vercel-bench.yml: opt-in
-  measured runs using the existing Koofr connection in the backup repository.
+Full backend save p50=2093ms, p95/max=5296ms (n15 committed saves in one functional
+run). Earlier973ms was a different single-Note primitive; do not use it as the
+full backend benchmark. No iPad/browser/public URL end-to-end or SLA claim.
 
-Run simulation: node --test experiments/vercel-koofr-lab/test/*.test.mjs
-(from repository root). Node24, no dependencies to install. Live run instructions,
-immutable preview URLs, credential flow and rollback are in the report above.
+Start with ../../docs/KOOFR-STORE100-20261017.md for schema, tradeoffs, failed runs,
+correction, exact live evidence and remaining gates. Earlier primitive performance:
+../../docs/HOMEPAGE-KOOFR-WEBDAV-20261017.md; socket faults/expiry:
+../../docs/KOOFR-RESILIENCE-20261017.md.
 
-Not yet verified: literal process kill and natural network outages, idle/cold start,
-100+ Note index/ACL/share revocation, restore, browser/offline draft safety and the
-actual iPad/company network. Receipt ring is bounded8 and is not indefinite
-idempotency/history. Prototype improvement is not authorization for production.
+- lib/store.mjs: immutable revision per Note + small catalog commit point,
+  inherited collection fencing, capability service, folders, receipts/tombstones.
+- lib/store-backup.mjs: integrity-checked snapshot, new-epoch restore, old links
+  revoked, partial restore hidden and late retry blocked after newer edits.
+- lib/store-fixtures.mjs: OIDC-only synthetic tests; no generic public Notes API.
+- Each store session MUST keep maxSockets=1: real inherited-lock writes failed
+  on parallel sockets. Do not remove this workaround without repeating tests.
+- lib/storage.mjs / resilience.mjs: original primitive and internal fault hooks.
+- api/bench.js / oidc.mjs: exact GitHub repo/branch/workflow identity, bounded paths,
+  metadata-only logs, no persisted account secret. POST expires18 October10:00 VN.
 
-Resilience follow-up:29 simulation tests passed; live corrected expiry/token
-fencing, six controlled TLS faults and byte-exact one-Note restore passed. See
-../../docs/KOOFR-RESILIENCE-20261017.md for both the initial failed fixture and
-corrected recheck evidence. Full-store/iPad/ACL gates remain open.
+Run simulations from repo root:
+`node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs`
+Node24, no dependencies. Live jobs are marker-opt-in, not scheduled.
+
+Prototype limits:128 synthetic slots,28KB serialized Note value vs current app's
+1MB content/3MB record; no full-text search, production session/CSRF adapter, UI,
+client busy retry/offline draft handling, independent backup retention, orphan GC,
+or sustained/cold/reconnect/separate-invocation benchmarks. Backups are on the same
+Koofr account; hashes detect accidental corruption, not malicious rewriting.

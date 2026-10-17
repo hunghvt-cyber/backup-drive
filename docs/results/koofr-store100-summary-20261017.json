@@ -1,0 +1,743 @@
+{
+  "kind": "KOOFR_VERCEL_STORE100_LIVE",
+  "at": "2026-10-17T04:26:49.845Z",
+  "deployedCode": "44b48edb2c1b9c89021b8deb76b94ad99cf65181",
+  "deploymentId": "dpl_FCRjYXj2F69a3vsVJ9ZCPgtyb5WL",
+  "endpoint": "https://homepage-koofr-pltmg2r4g-hunghvt.vercel.app/api/bench",
+  "passed": true,
+  "completed": true,
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "priorLockReconciliation": [
+    {
+      "namespace": "Homepage-Notes-Vercel-Probe-39002180348-ac469545-5839-43ff-b58c-491c3bee2d07",
+      "scope": "GitHub runner -> exact historical synthetic folder",
+      "acquisitionStatus": 200,
+      "released": true,
+      "unlockStatus": 204
+    },
+    {
+      "namespace": "Homepage-Notes-Vercel-Probe-39002374539-3c7e20cc-f099-4ec8-990e-3e74e7384ce0",
+      "scope": "GitHub runner -> exact historical synthetic folder",
+      "acquisitionStatus": 200,
+      "released": true,
+      "unlockStatus": 204
+    }
+  ],
+  "sourceNamespace": "Homepage-Notes-Vercel-Probe-39002578699-f030b171-8778-43ee-b9cf-b978f5d06501",
+  "restoreNamespace": "Homepage-Notes-Vercel-Probe-39002578699-4ec2e2eb-ea4d-4973-9fbd-6ee6ab13003a",
+  "region": "fra1",
+  "summary": {
+    "save-note": {
+      "attempted": 31,
+      "successful": {
+        "n": 16,
+        "p50": 1756.9324930000002,
+        "p95": 5296.024732999998,
+        "max": 5296.024732999998
+      },
+      "committedOnly": {
+        "n": 15,
+        "p50": 2092.593710999994,
+        "p95": 5296.024732999998,
+        "max": 5296.024732999998
+      },
+      "codes": {
+        "REVISION_CONFLICT": 4,
+        "OK": 16,
+        "OP_ID_REUSE": 1,
+        "INVALID_CHECKLIST": 1,
+        "NOTE_DELETED": 1,
+        "NOTE_SHARE_CANNOT_CREATE": 1,
+        "SHARE_CANNOT_MOVE": 2,
+        "READ_ONLY_SHARE": 1,
+        "CAPABILITY_DENIED": 2,
+        "NOTE_OUTSIDE_SHARE": 2
+      }
+    },
+    "list-notes": {
+      "attempted": 7,
+      "successful": {
+        "n": 3,
+        "p50": 418.41321300005075,
+        "p95": 730.8476229999796,
+        "max": 730.8476229999796
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "OK": 3,
+        "CAPABILITY_DENIED": 3,
+        "RESTORE_INCOMPLETE": 1
+      }
+    },
+    "get-note": {
+      "attempted": 34,
+      "successful": {
+        "n": 25,
+        "p50": 447.4203610000259,
+        "p95": 1327.5412210000213,
+        "max": 1636.014824999991
+      },
+      "committedOnly": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "OK": 25,
+        "NOTE_NOT_FOUND": 2,
+        "NOTE_OUTSIDE_SHARE": 3,
+        "CAPABILITY_DENIED": 4
+      }
+    },
+    "create-share": {
+      "attempted": 8,
+      "successful": {
+        "n": 7,
+        "p50": 1566.7018969999917,
+        "p95": 2848.9771260000125,
+        "max": 2848.9771260000125
+      },
+      "committedOnly": {
+        "n": 7,
+        "p50": 1566.7018969999917,
+        "p95": 2848.9771260000125,
+        "max": 2848.9771260000125
+      },
+      "codes": {
+        "SHARE_TARGET_MISSING": 1,
+        "OK": 7
+      }
+    },
+    "revoke-share": {
+      "attempted": 6,
+      "successful": {
+        "n": 6,
+        "p50": 969.2242089999781,
+        "p95": 2003.7949149999768,
+        "max": 2003.7949149999768
+      },
+      "committedOnly": {
+        "n": 6,
+        "p50": 969.2242089999781,
+        "p95": 2003.7949149999768,
+        "max": 2003.7949149999768
+      },
+      "codes": {
+        "OK": 6
+      }
+    },
+    "seed-batch": {
+      "attempted": 10,
+      "successful": {
+        "n": 10,
+        "p50": 9589.108681999991,
+        "p95": 30855.398094000004,
+        "max": 30855.398094000004
+      },
+      "committedOnly": {
+        "n": 10,
+        "p50": 9589.108681999991,
+        "p95": 30855.398094000004,
+        "max": 30855.398094000004
+      },
+      "codes": {
+        "OK": 10
+      }
+    },
+    "restore-batch": {
+      "attempted": 11,
+      "successful": {
+        "n": 11,
+        "p50": 10661.821722000022,
+        "p95": 21096.099578999972,
+        "max": 21096.099578999972
+      },
+      "committedOnly": {
+        "n": 11,
+        "p50": 10661.821722000022,
+        "p95": 21096.099578999972,
+        "max": 21096.099578999972
+      },
+      "codes": {
+        "OK": 11
+      }
+    }
+  },
+  "verifiedOriginalNotes": 100,
+  "restoreResult": {
+    "stored": 104,
+    "active": 100,
+    "byteExact": 104
+  },
+  "runId": 39002578699,
+  "artifactId": 12089572544,
+  "stages": [
+    {
+      "stage": "init",
+      "passed": true,
+      "checks": {
+        "freshIsolatedStore": true
+      },
+      "details": {},
+      "ms": 883.9692690000011,
+      "wallMs": 1498.394578
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 10
+      },
+      "ms": 11711.527414999997,
+      "wallMs": 12025.139176
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 20
+      },
+      "ms": 30855.440378999992,
+      "wallMs": 31188.407408
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 30
+      },
+      "ms": 7805.139043000003,
+      "wallMs": 8028.601986999995
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 40
+      },
+      "ms": 9589.14705,
+      "wallMs": 9808.979527999996
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 50
+      },
+      "ms": 12009.716516,
+      "wallMs": 12236.311795999995
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 60
+      },
+      "ms": 6068.514821999997,
+      "wallMs": 6379.5501670000085
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 70
+      },
+      "ms": 9424.338487999994,
+      "wallMs": 9781.002204999997
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 80
+      },
+      "ms": 14700.546858999995,
+      "wallMs": 14918.576912999997
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 90
+      },
+      "ms": 8293.791614999995,
+      "wallMs": 8517.958490000005
+    },
+    {
+      "stage": "seed",
+      "passed": true,
+      "checks": {
+        "chunkCommitted": true
+      },
+      "details": {
+        "created": 10,
+        "total": 100
+      },
+      "ms": 17708.466247999982,
+      "wallMs": 17937.469954
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1479.2689119999995,
+      "wallMs": 1735.3949679999787
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1923.8701540000038,
+      "wallMs": 2167.368576000008
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 3332.3162860000157,
+      "wallMs": 3564.0462270000135
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1526.3303700000106,
+      "wallMs": 1743.2280339999998
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 2620.3624180000043,
+      "wallMs": 2990.2761969999992
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 3682.3030909999798,
+      "wallMs": 4050.9822780000104
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1958.6151660000032,
+      "wallMs": 2190.9784609999915
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 4229.812742999988,
+      "wallMs": 4456.5222389999835
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1310.2011119999806,
+      "wallMs": 1522.72742499999
+    },
+    {
+      "stage": "verify",
+      "passed": true,
+      "checks": {
+        "unicodeChecklistFolderVerified": true
+      },
+      "details": {
+        "verified": 10,
+        "total": 100
+      },
+      "ms": 1949.6867649999913,
+      "wallMs": 2161.3024889999942
+    },
+    {
+      "stage": "owner",
+      "passed": true,
+      "checks": {
+        "crudChecklistIdempotency": true,
+        "deletedCannotResurrect": true,
+        "folderDeleteAndUnfile": true
+      },
+      "details": {},
+      "ms": 24373.426711000007,
+      "wallMs": 24592.706544999994
+    },
+    {
+      "stage": "history",
+      "passed": true,
+      "checks": {
+        "historyFiveVersions": true
+      },
+      "details": {},
+      "ms": 10976.10112800001,
+      "wallMs": 11365.260612000013
+    },
+    {
+      "stage": "note-share",
+      "passed": true,
+      "checks": {
+        "liveNoteShareEdit": true,
+        "readOnlyAndCrossNoteDenied": true,
+        "revokeAndFreshToken": true,
+        "revokedRetryDeniedBeforeReceipt": true
+      },
+      "details": {},
+      "ms": 16514.578716999997,
+      "wallMs": 16724.722960999992
+    },
+    {
+      "stage": "folder-share",
+      "passed": true,
+      "checks": {
+        "folderWorkspaceCreateEditIsolation": true,
+        "movedNoteLosesFolderAccess": true,
+        "sharedFolderDeleteGuard": true,
+        "folderRevokeAndRenew": true
+      },
+      "details": {},
+      "ms": 36660.90627200002,
+      "wallMs": 36885.165236
+    },
+    {
+      "stage": "concurrency",
+      "passed": true,
+      "checks": {
+        "sameBaseOneWinner": true
+      },
+      "details": {},
+      "ms": 1906.2181160000036,
+      "wallMs": 2124.674461000017
+    },
+    {
+      "stage": "revoke-expiry",
+      "passed": true,
+      "checks": {
+        "expiredCollectionMemberFenced": true,
+        "revokeWinsPausedWriter": true,
+        "orphanRevisionIgnored": true
+      },
+      "details": {
+        "pausedMetrics": [
+          {
+            "operation": "save-note",
+            "code": "LEASE_OR_PUBLICATION_REJECTED",
+            "committed": false,
+            "ms": 9236.888496999978,
+            "providerCalls": 11
+          }
+        ]
+      },
+      "ms": 11380.251699999964,
+      "wallMs": 11777.21983799999
+    },
+    {
+      "stage": "export",
+      "passed": true,
+      "checks": {
+        "fullSnapshotDurable": true
+      },
+      "details": {
+        "count": 104,
+        "active": 100,
+        "bytes": 194678,
+        "sha256": "9e4b978a78612e645ab194d3985cc69c203e265ca20011be0dd7c576e5c404df"
+      },
+      "ms": 14028.757952000014,
+      "wallMs": 14252.906870000006
+    },
+    {
+      "stage": "restore-init",
+      "passed": true,
+      "checks": {
+        "partialRestoreHidden": true,
+        "newEpochAndRevokedLinks": true
+      },
+      "details": {
+        "count": 104,
+        "active": 100,
+        "sharesRevoked": 7,
+        "newEpoch": true
+      },
+      "ms": 3984.9647499999846,
+      "wallMs": 4225.169594999985
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 10,
+        "restoring": true,
+        "chunk": 0
+      },
+      "ms": 18189.287221000006,
+      "wallMs": 18424.540297999978
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 20,
+        "restoring": true,
+        "chunk": 1
+      },
+      "ms": 21520.43021400005,
+      "wallMs": 22014.37864499999
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 30,
+        "restoring": true,
+        "chunk": 2
+      },
+      "ms": 19626.11088500003,
+      "wallMs": 19842.84436800005
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "interruptedRestoreNotPublished": true,
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 40,
+        "restoring": true,
+        "chunk": 3
+      },
+      "ms": 12209.723439000023,
+      "wallMs": 12433.461552000022
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 50,
+        "restoring": true,
+        "chunk": 4
+      },
+      "ms": 10821.979287000024,
+      "wallMs": 11039.620962999994
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 60,
+        "restoring": true,
+        "chunk": 5
+      },
+      "ms": 10692.53868399997,
+      "wallMs": 10912.33134199999
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 70,
+        "restoring": true,
+        "chunk": 6
+      },
+      "ms": 9020.295235999976,
+      "wallMs": 9237.59390399995
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 80,
+        "restoring": true,
+        "chunk": 7
+      },
+      "ms": 11649.342651000014,
+      "wallMs": 11877.671238999988
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 90,
+        "restoring": true,
+        "chunk": 8
+      },
+      "ms": 12586.088664000039,
+      "wallMs": 12849.51366300002
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 100,
+        "restoring": true,
+        "chunk": 9
+      },
+      "ms": 9020.04959999997,
+      "wallMs": 9233.520186000038
+    },
+    {
+      "stage": "restore-chunk",
+      "passed": true,
+      "checks": {
+        "restoreChunkVerified": true
+      },
+      "details": {
+        "count": 104,
+        "restoring": false,
+        "chunk": 10
+      },
+      "ms": 4000.6274390000035,
+      "wallMs": 4221.418654000037
+    },
+    {
+      "stage": "restore-verify",
+      "passed": true,
+      "checks": {
+        "fullRestoreByteExact": true,
+        "restoreOldLinksAndRevisionsDenied": true,
+        "corruptRecordRejected": true
+      },
+      "details": {
+        "stored": 104,
+        "active": 100,
+        "byteExact": 104
+      },
+      "ms": 18938.98691400001,
+      "wallMs": 19144.871470000013
+    }
+  ],
+  "evidence": {
+    "rawJsonBytes": 448121,
+    "rawSha256": "c1ee8e054d59d013db29382654a23f7d9fcd02894bb6b3e0baf9b433dfa6efb3",
+    "gzipSha256": "d7695bbbe1da7c1160a42a044e456e77b36f3872160567e42ece6321f4c6fe83"
+  },
+  "cleanupWarnings": [],
+  "measuredProviderCalls": 1518,
+  "stageWallMsTotal": 442082.81149800005
+}

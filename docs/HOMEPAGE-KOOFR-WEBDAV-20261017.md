@@ -299,3 +299,12 @@ documented in KOOFR-RESILIENCE-20261017.md. All three groups now have passing li
 evidence; the first expiry fixture failure is retained separately.29 simulated
 tests pass. This supersedes the initial statement that expiry and controlled
 transport faults are untested, while full-store/ACL/iPad/idle gates remain open.
+
+##100-Note/folder/share follow-up
+
+See KOOFR-STORE100-20261017.md: full live100-Note trial and104-record restore passed
+after replacing parallel inherited-lock requests with a per-session single-socket
+agent. Full backend save p50=2093ms, p95/max=5296ms(n15); the primitive973ms number
+does not represent this complete architecture.43 simulations and a separate narrow
+late-restore guard live recheck pass. Production/session/UI/large-note/search gates
+remain open; no cutover or migration occurred.

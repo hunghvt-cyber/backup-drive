@@ -1,0 +1,106 @@
+{
+  "kind": "KOOFR_COLLECTION_LOCK_SYNTHETIC_PREFLIGHT",
+  "at": "2026-10-17T04:11:59.932Z",
+  "namespace": "Homepage-Notes-Vercel-Probe-39001643417-3cd63622-6613-4603-8e20-3eb608d903fd",
+  "passed": true,
+  "calls": [
+    {
+      "label": "new-namespace",
+      "method": "MKCOL",
+      "status": 201,
+      "ms": 986.4644040000001
+    },
+    {
+      "label": "seed-member",
+      "method": "PUT",
+      "status": 201,
+      "ms": 695.4199119999998
+    },
+    {
+      "label": "collection-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 176.85628799999995
+    },
+    {
+      "label": "collection-contender",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 154.43215699999996
+    },
+    {
+      "label": "tokenless-existing-member",
+      "method": "PUT",
+      "status": 423,
+      "ms": 152.20990399999982
+    },
+    {
+      "label": "verify-existing-member-preserved",
+      "method": "GET",
+      "status": 200,
+      "ms": 349.7435959999998
+    },
+    {
+      "label": "own-token-member-write",
+      "method": "PUT",
+      "status": 201,
+      "ms": 525.391067
+    },
+    {
+      "label": "verify-member-write",
+      "method": "GET",
+      "status": 200,
+      "ms": 229.46147599999995
+    },
+    {
+      "label": "tokenless-new-member",
+      "method": "PUT",
+      "status": 423,
+      "ms": 163.51849700000002
+    },
+    {
+      "label": "verify-new-member-absent",
+      "method": "GET",
+      "status": 404,
+      "ms": 187.72470399999975
+    },
+    {
+      "label": "own-token-new-member",
+      "method": "PUT",
+      "status": 201,
+      "ms": 747.8011029999998
+    },
+    {
+      "label": "verify-new-member",
+      "method": "GET",
+      "status": 200,
+      "ms": 277.8920419999995
+    },
+    {
+      "label": "release-collection-lock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 152.07165800000075
+    },
+    {
+      "label": "stale-collection-token-member-write",
+      "method": "PUT",
+      "status": 412,
+      "ms": 152.50759600000038
+    },
+    {
+      "label": "verify-stale-member-preserved",
+      "method": "GET",
+      "status": 200,
+      "ms": 288.9361779999999
+    }
+  ],
+  "checks": {
+    "existingMemberProtected": true,
+    "newMemberProtected": true,
+    "staleCollectionTokenFenced": true
+  },
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "possibleOutstandingLock": false
+}
