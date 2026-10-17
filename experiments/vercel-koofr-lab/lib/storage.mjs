@@ -11,7 +11,7 @@ export function validateInput(input,runId){
  const {user,password,namespace,mode,transport,opId,baseRevision}=input;
  must(typeof user==='string'&&user.length>0&&user.length<300&&!/[:\r\n]/.test(user)&&typeof password==='string'&&password.length>0&&password.length<600&&!/[\r\n]/.test(password),'INVALID_CREDENTIAL_FORMAT');
  must(typeof namespace==='string'&&new RegExp('^Homepage-Notes-Vercel-Probe-'+runId+'-[a-f0-9-]{36}$').test(namespace),'PATH_FORBIDDEN');
- must(['seed','read','save','expiry','faults','restore','store100','store-reliability'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
+ must(['seed','read','save','expiry','faults','restore','store100','store-reliability','preview-qualify'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
  if(mode==='save')must(/^[a-f0-9-]{36}$/.test(opId)&&Number.isSafeInteger(baseRevision)&&baseRevision>=0,'INVALID_OPERATION');
 }
 export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponseBytes=32000,connectionAgent}={}){
@@ -28,9 +28,9 @@ export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponse
  });
 }
 export function createDav(input,{fetcher=fetch,nativeRequest=nativeTransport,file='note.json'}={}){
- const member=file.match(/^note-(\d{3})-([a-f0-9-]{36})\.json$/);
- must(['note.json','backup.json','recovered.json','catalog.json','store-backup.json'].includes(file)||(member&&Number(member[1])<=127),'PATH_FORBIDDEN');
- const maxResponseBytes=file==='store-backup.json'?2000000:file==='catalog.json'?256000:32000;
+ const member=file.match(/^note-(\d{3})-([a-f0-9-]{36})\.json$/),uuidMember=/^note-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.json$/.test(file);
+ must(['note.json','backup.json','recovered.json','catalog.json','store-backup.json','restore-control.json'].includes(file)||(member&&Number(member[1])<=127)||uuidMember,'PATH_FORBIDDEN');
+ const maxResponseBytes=file==='store-backup.json'?2000000:file==='catalog.json'?256000:(member||uuidMember)?3100000:32000;
  const auth='Basic '+Buffer.from(input.user+':'+input.password).toString('base64');
  const url=origin+'/dav/Koofr/'+input.namespace+'/'+file;const calls=[];
  async function call(label,method,body,headers={},folder=false){

@@ -9,6 +9,7 @@ export class StoreError extends Error{constructor(status,code){super(code);this.
 const check=(v,status,code)=>{if(!v)throw new StoreError(status,code);};
 const clone=x=>JSON.parse(JSON.stringify(x));
 const ok=r=>[200,201,204].includes(r.status);
+export const validNoteId=id=>typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id);
 export const ownerContext=Object.freeze({owner:true});
 export const noteId=slot=>'00000000-0000-4000-8000-'+String(slot).padStart(12,'0');
 export const folders=['Công việc','Gia đình','日本語 😀','Riêng tư'];
@@ -74,20 +75,20 @@ export class NoteStore{
   });for(const e of records)cat.entries[e.id]=e;return {created:records.length,total:Object.keys(cat.entries).length};});}
  async get(id,actor=ownerContext){return this.locked('get-note',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');can(cat,actor,id);const e=cat.entries[id];check(e&&!e.deleted,404,'NOTE_NOT_FOUND');return this.view(cat,e,await this.readRecord(e));});}
  async list(actor=ownerContext){return this.locked('list-notes',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');const s=actor?.owner?null:capability(cat,actor?.token);const entries=Object.values(cat.entries).filter(e=>!e.deleted&&(!s||(s.scope==='note'?s.target===e.id:s.target===e.folder)));return entries.map(e=>({id:e.id,folder:e.folder,...e.summary,revision:cat.epoch+':'+e.version}));});}
- async save(slot,patch,expected,opId,actor=ownerContext){check(Number.isInteger(slot)&&slot>=0&&slot<=127&&/^[a-f0-9-]{36}$/.test(opId),400,'INVALID_OPERATION');return this.locked('save-note',async(cat,token)=>{
-  check(!cat.restoring,503,'RESTORE_INCOMPLETE');const id=noteId(slot),old=cat.entries[id];let share;
+ async save(slot,patch,expected,opId,actor=ownerContext){check(((Number.isInteger(slot)&&slot>=0&&slot<=127)||validNoteId(slot))&&validNoteId(opId),400,'INVALID_OPERATION');return this.locked('save-note',async(cat,token)=>{
+  check(!cat.restoring,503,'RESTORE_INCOMPLETE');const id=typeof slot==='number'?noteId(slot):slot,old=cat.entries[id];let share;
   if(actor?.owner){}else{share=capability(cat,actor?.token);check(share.permission==='edit',403,'READ_ONLY_SHARE');if(old)can(cat,actor,id,true);else check(share.scope==='folder',403,'NOTE_SHARE_CANNOT_CREATE');}
   check(!old?.deleted,409,'NOTE_DELETED');
   const requestHash=hash(JSON.stringify({slot,patch,expected,actor:share?.id??'owner'}));const replay=cat.receipts.find(r=>r.opId===opId);if(replay){check(replay.requestHash===requestHash,409,'OP_ID_REUSE');return {id,revision:replay.revision,replay:true};}
   check(old?expected===cat.epoch+':'+old.version:expected===null,409,'REVISION_CONFLICT');
   const current=old?await this.readRecord(old):null;
-  let folder=actor?.owner?(patch.folder??old?.folder??''):(old?.folder??share.target);if(folder)folder=folderName(folder);check(!folder||Object.hasOwn(cat.folders,folder),400,'FOLDER_NOT_FOUND');
+  let folder=actor?.owner?(patch.folder??old?.folder??''):(old?.folder??share.target);if(folder)folder=folderName(folder);if(folder&&actor?.owner&&!Object.hasOwn(cat.folders,folder))Object.defineProperty(cat.folders,folder,{value:true,enumerable:true,writable:true,configurable:true});check(!folder||Object.hasOwn(cat.folders,folder),400,'FOLDER_NOT_FOUND');
   if(!actor?.owner)check(patch.folder===undefined||patch.folder===folder,403,'SHARE_CANNOT_MOVE');
   const incoming=noteInput({...current,...patch,pinned:actor?.owner?(patch.pinned??current?.pinned):current?.pinned??false,checklist:patch.checklist??current?.checklist??[]});
   const history=current?[{title:current.title,text:current.text,checklist:current.checklist,folder:old.folder,updatedAt:current.updatedAt},...current.history].slice(0,5):[];
-  const value={id,...incoming,updatedAt:this.now(),history};check(Buffer.byteLength(JSON.stringify(value))<=28000,413,'PROTOTYPE_RECORD_LIMIT');
-  const payload=JSON.stringify({schema:2,opId,requestHash,value,valueHash:hash(JSON.stringify(value))}),head='note-'+String(slot).padStart(3,'0')+'-'+opId+'.json';const actual=await this.immutable(head,payload,token,{requestHash}),published=parseNote(actual).value;
-  const e={id,slot,head,headHash:hash(actual),folder,version:(old?.version??0)+1,deleted:false,summary:summary(published)};cat.entries[id]=e;
+  const value={id,...incoming,updatedAt:this.now(),history};while(Buffer.byteLength(JSON.stringify(value))>3000000&&history.length)history.pop();check(Buffer.byteLength(JSON.stringify(value))<=3000000,413,'NOTE_RECORD_TOO_LARGE');
+  const payload=JSON.stringify({schema:2,opId,requestHash,value,valueHash:hash(JSON.stringify(value))}),head='note-'+(typeof slot==='number'?String(slot).padStart(3,'0'):slot)+'-'+opId+'.json';const actual=await this.immutable(head,payload,token,{requestHash}),published=parseNote(actual).value;
+  const e={id,...(typeof slot==='number'?{slot}:{}),head,headHash:hash(actual),folder,version:(old?.version??0)+1,deleted:false,summary:summary(published)};cat.entries[id]=e;
   const revision=cat.epoch+':'+e.version;cat.receipts=[...cat.receipts,{opId,requestHash,revision}].slice(-24);return {id,revision,replay:false};
  });}
  async remove(id,expected,actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('soft-delete',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');const e=cat.entries[id];check(e,404,'NOTE_NOT_FOUND');if(e.deleted)return {deleted:true};check(expected===cat.epoch+':'+e.version,409,'REVISION_CONFLICT');e.deleted=true;e.version++;return {deleted:true};});}
@@ -95,6 +96,16 @@ export class NoteStore{
  async deleteFolder(name,deleteNotes=false,actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('delete-folder',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');check(typeof deleteNotes==='boolean',400,'INVALID_FOLDER_DELETE_MODE');check(Object.hasOwn(cat.folders,name),404,'FOLDER_NOT_FOUND');check(!Object.values(cat.shares).some(s=>!s.revoked&&s.scope==='folder'&&s.target===name),409,'FOLDER_STILL_SHARED');for(const e of Object.values(cat.entries))if(!e.deleted&&e.folder===name){e.folder='';e.deleted=deleteNotes;e.version++;}delete cat.folders[name];return {deleted:true};});}
  async share(scope,target,permission='edit',actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('create-share',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');check(['note','folder'].includes(scope)&&['view','edit'].includes(permission),400,'INVALID_SHARE');check(scope==='note'?cat.entries[target]&&!cat.entries[target].deleted:Object.hasOwn(cat.folders,target)&&Object.values(cat.entries).some(e=>!e.deleted&&e.folder===target),404,'SHARE_TARGET_MISSING');const c=newCapability();cat.shares[c.id]={scope,target,permission,tokenHash:c.tokenHash,revoked:false,epoch:1};return {id:c.id,token:c.token};});}
  async revoke(id,actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('revoke-share',async cat=>{const s=cat.shares[id];check(s,404,'SHARE_NOT_FOUND');if(!s.revoked){s.revoked=true;s.epoch++;}return {revoked:true};});}
+ async linkInfo(actor){return this.locked('share-info',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');const s=capability(cat,actor?.token);return {scope:s.scope,target:s.target,permission:s.permission};});}
+ async links(scope,target,actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('list-shares',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');return Object.entries(cat.shares).filter(([,s])=>s.scope===scope&&s.target===target).map(([id,s])=>({id,revoked:s.revoked,permission:s.permission}));});}
+ async folderNames(actor=ownerContext){check(actor?.owner,403,'OWNER_REQUIRED');return this.locked('list-folders',async cat=>{check(!cat.restoring,503,'RESTORE_INCOMPLETE');return Object.keys(cat.folders).sort((a,b)=>a.localeCompare(b,'vi'));});}
+ async loginAttempt(key,now=Date.now()){
+  check(/^[a-f0-9]{64}$/.test(key),400,'INVALID_LOGIN_BUCKET');return this.locked('login-attempt',async cat=>{
+   const bucket=Math.floor(now/900000),old=cat.loginBuckets?.bucket===bucket?cat.loginBuckets:{bucket,global:0,clients:{}};
+   check(old.global<30&&(old.clients[key]??0)<5,429,'LOGIN_RATE_LIMITED');
+   cat.loginBuckets={bucket,global:old.global+1,clients:{...old.clients,[key]:(old.clients[key]??0)+1}};return {allowed:true};
+  });
+ }
  async capture(){return this.locked('capture-snapshot',async cat=>clone(cat));}
  async verifyAll(){const cat=await this.capture();const records=await pool(Object.values(cat.entries),async e=>({id:e.id,record:await this.readRecord(e)}));return {cat,records};}
 }

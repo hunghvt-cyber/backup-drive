@@ -8,6 +8,9 @@
   "functions": {
     "api/bench.js": {
       "maxDuration": 120
+    },
+    "api/preview.js": {
+      "maxDuration": 120
     }
   }
 }
