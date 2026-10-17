@@ -113,7 +113,7 @@ jobs:
           retention-days: 7
 
   live-store100:
-    if: contains(github.event.head_commit.message, '[koofr-store100]')
+    if: contains(github.event.head_commit.message, '[koofr-store100]') || contains(github.event.head_commit.message, '[koofr-store-guards]')
     needs: simulation
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -130,6 +130,7 @@ jobs:
           node-version: '24'
       - name: 100 synthetic Notes, folder/share isolation and full restore through Vercel
         env:
+          STORE100_GUARD_ONLY: ${{ contains(github.event.head_commit.message, '[koofr-store-guards]') && '1' || '0' }}
           KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
           RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
           KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}

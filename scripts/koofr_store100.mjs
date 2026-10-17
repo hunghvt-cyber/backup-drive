@@ -5,8 +5,8 @@ import {lockXml,validToken} from '../experiments/vercel-koofr-lab/lib/storage.mj
 import {audience} from '../experiments/vercel-koofr-lab/lib/oidc.mjs';
 import {randomUUID} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
-const endpoint='https://homepage-koofr-pltmg2r4g-hunghvt.vercel.app/api/bench';
-const report={kind:'KOOFR_VERCEL_STORE100_LIVE',at:new Date().toISOString(),deployedCode:'44b48edb2c1b9c89021b8deb76b94ad99cf65181',deploymentId:'dpl_FCRjYXj2F69a3vsVJ9ZCPgtyb5WL',endpoint,passed:false,completed:false,stages:[],errors:[]};
+const endpoint='https://homepage-koofr-gd7ag1j55-hunghvt.vercel.app/api/bench';
+const report={kind:process.env.STORE100_GUARD_ONLY==='1'?'KOOFR_RESTORE_GUARD_LIVE':'KOOFR_VERCEL_STORE100_LIVE',at:new Date().toISOString(),deployedCode:'a6a62ffd8329274cd2e9f302c5bc4d25c0717295',deploymentId:'dpl_7wkGc3aUwvmXj3q7U33DcomTVv7S',endpoint,passed:false,completed:false,stages:[],errors:[]};
 const must=(v,c)=>{if(!v)throw Error(c);};
 async function oidc(){const u=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);must(u.protocol==='https:'&&u.hostname.endsWith('.githubusercontent.com'),'OIDC_ENDPOINT_INVALID');u.searchParams.set('audience',audience);const r=await fetch(u,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},redirect:'error',signal:AbortSignal.timeout(10000)});must(r.ok,'OIDC_FAILED');const j=await r.json();must(typeof j.value==='string','OIDC_FAILED');return j.value;}
 try{
@@ -30,9 +30,10 @@ try{
   console.log(JSON.stringify({stage:name,chunk:extra.chunk,passed:result.passed,checks:result.checks,details:result.details,errors:result.errors,serverMs:result.ms,wallMs:row.wallMs}));
   must(result.passed&&r.status===200&&result.region==='fra1','STAGE_FAILED_'+name.toUpperCase().replaceAll('-','_'));return result;
  }
+ if(process.env.STORE100_GUARD_ONLY==='1'){await stage('restore-guards');}else{
  await stage('init');for(let chunk=0;chunk<10;chunk++)await stage('seed',{chunk});for(let chunk=0;chunk<10;chunk++)await stage('verify',{chunk});
  for(const name of ['owner','history','note-share','folder-share','concurrency','revoke-expiry'])await stage(name);
- const exported=await stage('export');must(exported.details.active===100,'SOURCE_ACTIVE_COUNT_FAILED');await stage('restore-init');for(let chunk=0;chunk<Math.ceil(exported.details.count/10);chunk++)await stage('restore-chunk',{chunk});await stage('restore-verify');
+ const exported=await stage('export');must(exported.details.active===100,'SOURCE_ACTIVE_COUNT_FAILED');await stage('restore-init');for(let chunk=0;chunk<Math.ceil(exported.details.count/10);chunk++)await stage('restore-chunk',{chunk});await stage('restore-verify');}
  probe=undefined;report.completed=true;report.passed=true;
 }catch(e){report.errors.push({code:/^[A-Z_0-9]{1,90}$/.test(e.message)?e.message:'REQUEST_OUTCOME_UNVERIFIED'});}
 finally{
