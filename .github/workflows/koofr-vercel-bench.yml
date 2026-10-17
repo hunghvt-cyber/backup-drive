@@ -54,7 +54,7 @@ jobs:
           retention-days: 7
 
   live-resilience:
-    if: contains(github.event.head_commit.message, '[vercel-koofr-resilience]')
+    if: contains(github.event.head_commit.message, '[vercel-koofr-resilience]') || contains(github.event.head_commit.message, '[vercel-koofr-expiry-recheck]')
     needs: simulation
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -71,6 +71,7 @@ jobs:
           node-version: '24'
       - name: Isolated expiry, deliberate TLS faults and new-file restore
         env:
+          RESILIENCE_CASES: ${{ contains(github.event.head_commit.message, '[vercel-koofr-expiry-recheck]') && 'expiry' || 'all' }}
           KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
           RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
           KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
