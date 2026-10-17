@@ -27,3 +27,8 @@ Not yet verified: lock expiry/crash fencing, actual network outages, idle/cold s
 100+ Note index/ACL/share revocation, restore, browser/offline draft safety and the
 actual iPad/company network. Receipt ring is bounded8 and is not indefinite
 idempotency/history. Prototype improvement is not authorization for production.
+
+Resilience follow-up:29 simulation tests passed; live corrected expiry/token
+fencing, six controlled TLS faults and byte-exact one-Note restore passed. See
+../../docs/KOOFR-RESILIENCE-20261017.md for both the initial failed fixture and
+corrected recheck evidence. Full-store/iPad/ACL gates remain open.

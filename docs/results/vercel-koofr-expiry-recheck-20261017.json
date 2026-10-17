@@ -1,0 +1,258 @@
+{
+  "kind": "VERCEL_KOOFR_LIVE_CONTROLLED_RESILIENCE",
+  "at": "2026-10-17T04:06:17.653Z",
+  "deployedCode": "ff2244f590362b5eadbdf177211c207d0da52bbe",
+  "deploymentId": "dpl_2esQBipQVaY5axo4QkjvKTvensFP",
+  "endpoint": "https://homepage-koofr-5yjqqz0lp-hunghvt.vercel.app/api/bench",
+  "passed": true,
+  "completed": true,
+  "cases": [
+    {
+      "mode": "expiry",
+      "namespace": "Homepage-Notes-Vercel-Probe-39001279740-23c8a355-5a6f-4bb6-ab10-9bb7d124c8d4",
+      "httpStatus": 200,
+      "wallMs": 15987.022802000001,
+      "status": 200,
+      "code": "RESILIENCE_VERIFIED",
+      "kind": "KOOFR_VERCEL_CONTROLLED_RESILIENCE",
+      "passed": true,
+      "checks": {
+        "isolatedSeed": true,
+        "expiryObservedWithoutUnlock": true,
+        "staleTokenFencedWithNewOwner": true,
+        "staleTokenFencedWithoutOwner": true,
+        "pausedEditorConflict": true
+      },
+      "faults": [],
+      "errors": [],
+      "requestedSeconds": 5,
+      "advertisedTimeout": "Second-5",
+      "waitedMs": 6049.172858999998,
+      "newOwnerAdvertisedTimeout": "Second-60",
+      "expiredWriterWithNewOwnerStatus": 412,
+      "expiredUnlockStatus": 409,
+      "newOwnerHeldBeforeUnlockMs": 7765.033283000004,
+      "expiredWriterWithoutOwnerStatus": 412,
+      "cleanup": [],
+      "possibleOutstandingLock": false,
+      "calls": [
+        {
+          "label": "new-namespace",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "dnsMs": 36.62383899999986,
+            "tcpMs": 43.657044999999925,
+            "tlsMs": 51.599983000000066,
+            "ttfbMs": 121.69962400000077,
+            "reusedSocket": false
+          },
+          "ms": 124.0317240000004
+        },
+        {
+          "label": "seed-note",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 572.8248010000025,
+            "reusedSocket": true
+          },
+          "ms": 573.8277199999939
+        },
+        {
+          "label": "seed-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 349.33844600000157,
+            "reusedSocket": true
+          },
+          "ms": 350.4369329999972
+        },
+        {
+          "label": "expiry-original-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 80.70054399999935,
+            "reusedSocket": true
+          },
+          "ms": 81.64854300000297
+        },
+        {
+          "label": "expiry-initial-contender",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 16.649946999998065,
+            "reusedSocket": true
+          },
+          "ms": 17.303722999997262
+        },
+        {
+          "label": "expiry-contender-poll",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 8.34085999999661,
+            "reusedSocket": true
+          },
+          "ms": 9.24367699999857
+        },
+        {
+          "label": "expiry-contender-poll",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 15.405308000001241,
+            "reusedSocket": true
+          },
+          "ms": 16.194620999995095
+        },
+        {
+          "label": "expiry-contender-poll",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 22.574854999998934,
+            "reusedSocket": true
+          },
+          "ms": 23.384125999997195
+        },
+        {
+          "label": "expiry-read-new-owner",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 170.66745400000218,
+            "reusedSocket": true
+          },
+          "ms": 171.76139899999544
+        },
+        {
+          "label": "expiry-new-owner-write",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 3290.1227999999974,
+            "reusedSocket": true
+          },
+          "ms": 3290.8338090000034
+        },
+        {
+          "label": "expiry-stale-writer-active-owner",
+          "method": "PUT",
+          "status": 412,
+          "timing": {
+            "ttfbMs": 116.26062999999704,
+            "reusedSocket": true
+          },
+          "ms": 116.77455000000191
+        },
+        {
+          "label": "expiry-stale-unlock",
+          "method": "UNLOCK",
+          "status": 409,
+          "timing": {
+            "ttfbMs": 17.528705999997328,
+            "reusedSocket": true
+          },
+          "ms": 18.12666800000443
+        },
+        {
+          "label": "expiry-check-new-owner-still-held",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 19.889039000001503,
+            "reusedSocket": true
+          },
+          "ms": 20.353503999998793
+        },
+        {
+          "label": "expiry-verify-new-owner-content",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 4146.053971999994,
+            "reusedSocket": true
+          },
+          "ms": 4146.560097000001
+        },
+        {
+          "label": "expiry-new-owner-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 7.279359000000113,
+            "reusedSocket": true
+          },
+          "ms": 7.852597000004607
+        },
+        {
+          "label": "expiry-stale-writer-no-owner",
+          "method": "PUT",
+          "status": 412,
+          "timing": {
+            "ttfbMs": 7.277168000000529,
+            "reusedSocket": true
+          },
+          "ms": 7.832185999999638
+        },
+        {
+          "label": "expiry-final-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 111.84934399999474,
+            "reusedSocket": true
+          },
+          "ms": 112.37386300000071
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 24.63232599999901,
+            "reusedSocket": true
+          },
+          "ms": 25.21549099999538
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 251.73014400000102,
+            "reusedSocket": true
+          },
+          "ms": 252.21249700000044
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 11.579501000000164,
+            "reusedSocket": true
+          },
+          "ms": 12.01676099999895
+        }
+      ],
+      "ms": 15381.683845,
+      "requestId": "6068986c-1974-4418-91e4-bda9af4d341f",
+      "region": "fra1",
+      "authAndParseMs": 309.7834070000026
+    }
+  ],
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "region": "fra1",
+  "priorLockReconciliation": {
+    "scope": "GitHub runner -> exact retained synthetic file only",
+    "acquisitionStatus": 200,
+    "noOutstandingLockAtCheck": true,
+    "unlockStatus": 204
+  }
+}

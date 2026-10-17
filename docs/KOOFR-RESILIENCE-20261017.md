@@ -91,3 +91,71 @@ A narrow recheck requests A5s but B60s, confirms B's advertised lease and record
 the interval before its UNLOCK. A slow-call simulation regression was added.
 29 simulated tests pass. Only expiry is rerun; the passing fault/restore cases are
 not repeated. Until recheck evidence exists, expiry remains an incomplete gate.
+
+### Final live expiry recheck — PASSED
+
+Sourceff2244f590362b5eadbdf177211c207d0da52bbe; driver/workflow
+b7bb749521a77c03b17e061effb47cd252b01066. Run39001279740:
+https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39001279740
+Vercel previewdpl_2esQBipQVaY5axo4QkjvKTvensFP, actual regionfra1. Artifact12089096881;
+committed raw evidence docs/results/vercel-koofr-expiry-recheck-20261017.json.
+
+| Gate | Actual observation |
+| --- | --- |
+| A expires without UNLOCK/refresh | Requested/advertised Second-5; contender first423, acquired a new token after6049ms of polling observation |
+| Successor B lease | Advertised Second-60; validation held it for7765ms before successful UNLOCK |
+| Expired A PUT while B owns file |412; B content preserved |
+| Expired A UNLOCK |409; B remained held, competing LOCK423 |
+| Expired A PUT after B release |412; content preserved |
+| Paused editor retries stale base |409 conflict, no overwrite |
+| Final new test lock cleanup | No active own token / no outstanding-lock warning |
+
+The initial failure was the test requesting only5s for B as well. The recheck's
+7765ms successor validation exceeds that old fixture lease, confirming why a
+longer successor lease is necessary. Do not erase or reinterpret the failed run
+as a pass: the final expiry gate is supported by the separate corrected run.
+
+The historical initial warning was separately reconciled from the GitHub runner
+against ONLY its exact retained synthetic namespace
+Homepage-Notes-Vercel-Probe-39001007775-1e85a400-cb73-44bb-906a-55ea272dce35:
+LOCK200 acquired a fresh token, UNLOCK204 released that same new token. No content
+write/delete, unknown-token unlock or backup path access. This confirms the old
+short-lived lock was not still present at that check; it does not change history.
+
+### Combined decision / limits
+
+All three bounded groups now have actual passing evidence: corrected expiry,
+six controlled TLS-fault cases, and one-note durable backup/restore.29 simulated
+tests pass, including successor validation slower than the initial5s fixture.
+Controlled transport faults included7 actual socket destructions across6 cases;
+restoration added one. No naturally occurring Internet failure was induced or
+observed; no iPad network/IndexedDB recovery or literal process-kill test was run.
+
+The restore preserved exact2307-byte Note envelope, SHA256
+7e20ed6f34e79b74c42e6c14ddf5f504273960a307d572a9fc5aa05014be77da,
+in a NEW identity. Source corruption and backup tampering were rejected, and the
+restore required only one PUT after its response was discarded. Normal writes
+cannot repair malformed records automatically or silently overwrite them.
+
+This resolves specific protocol/reconciliation/recovery questions, not production
+readiness. Remaining gates:100+ Notes and complete app schema, folder/workspace
+consistency, share ACL/revocation, independent backup retention/restore of the
+whole store, cold starts/idle/soak, real iPad offline drafts and ambiguous user
+requests. Koofr WebDAV still ignores HTTP If-Match; never remove lock-token fencing.
+Finite receipt history is not indefinite replay confirmation: old evicted retries
+fail conflict and require reconciliation without silently committing again.
+
+### Repeat / stop
+
+All source and reports are in the existing isolated branch/draft PR. The existing
+workflow accepts [vercel-koofr-resilience] for all3 groups or
+[vercel-koofr-expiry-recheck] for expiry plus exact historical-lock reconciliation.
+For a deliberate future run, deploy updated lab source, use its immutable URL in
+the runner, and review the explicit API expiry. No new secret setup is needed while
+existing connected permissions remain valid. No recurring Actions job was added.
+The benchmark route stops POST at18 October2026 10:00 Vietnam time automatically.
+
+No production rollback needed: no Homepage/Home-AI deployment, main merge, Notes
+migration, GAS/report change or backup workflow modification occurred. Keep the
+synthetic namespaces for evidence; the only deliberately corrupted file is inside
+the private test namespace, with its matching backup and recovered copy retained.

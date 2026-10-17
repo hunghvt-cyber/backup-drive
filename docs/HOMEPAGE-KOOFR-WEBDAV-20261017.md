@@ -291,3 +291,11 @@ expiry, every benchmark POST returns410 before authentication or storage access.
 Optionally remove only the dedicated lab deployments/project using its recorded ID;
 do not delete Homepage/Home-AI or change their domains. Retain the two synthetic
 folders as evidence; no real-data cleanup/migration/backup changes are part of this PR.
+
+## Resilience follow-up
+
+The later bounded expiry, controlled TLS fault and one-note recovery trial is
+documented in KOOFR-RESILIENCE-20261017.md. All three groups now have passing live
+evidence; the first expiry fixture failure is retained separately.29 simulated
+tests pass. This supersedes the initial statement that expiry and controlled
+transport faults are untested, while full-store/ACL/iPad/idle gates remain open.
