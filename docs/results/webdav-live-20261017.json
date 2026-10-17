@@ -1,0 +1,68 @@
+{
+  "kind": "KOOFR_WEBDAV_SYNTHETIC_CONFORMANCE_NOT_HOMEPAGE_BENCHMARK",
+  "at": "2026-10-17T03:11:07.190Z",
+  "completed": false,
+  "passed": false,
+  "checks": {
+    "privateNamespaceCreated": true,
+    "unicodeChecklist": true
+  },
+  "calls": [
+    {
+      "label": "new-isolated-folder",
+      "method": "MKCOL",
+      "status": 201,
+      "ms": 1110.262984,
+      "ok": true
+    },
+    {
+      "label": "create",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1111.325015,
+      "ok": true
+    },
+    {
+      "label": "verify-create",
+      "method": "GET",
+      "status": 200,
+      "ms": 451.08249000000023,
+      "ok": true
+    },
+    {
+      "label": "reject-duplicate-create",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1146.1204229999998,
+      "ok": true
+    }
+  ],
+  "errors": [
+    {
+      "code": "CREATE_PRECONDITION_NOT_ENFORCED"
+    }
+  ],
+  "namespace": "Homepage-Notes-WebDAV-Probe-6fedd63c-5f5a-40e2-988d-ac017ace2cd9",
+  "credentialSource": "existing_koofr_remote",
+  "summary": {
+    "benchmark-get": {
+      "attempted": 0,
+      "success": 0,
+      "p50": null,
+      "p95": null
+    },
+    "benchmark-put": {
+      "attempted": 0,
+      "success": 0,
+      "p50": null,
+      "p95": null
+    },
+    "benchmark-readback": {
+      "attempted": 0,
+      "success": 0,
+      "p50": null,
+      "p95": null
+    }
+  },
+  "scope": "GitHub runner -> Koofr WebDAV; no Vercel/browser/100-Note backend benchmark"
+}

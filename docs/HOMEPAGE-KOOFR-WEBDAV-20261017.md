@@ -78,3 +78,20 @@ Primary references:
 
 Pending actual Actions evidence; missing credentials/auth is not a WebDAV performance
 failure. Any permission/setup requirement will be reported without revealing values.
+
+### First live result
+
+Commit4908efd, run38997788916:
+https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38997788916
+Simulation6/6 passed. Existing native Koofr remote authenticated to WebDAV without
+new user setup. MKCOL201~1110ms, PUT201~1111ms, verified Unicode GET200~451ms.
+Second PUT to the SAME file with If-None-Match:* returned201~1146ms instead of412;
+probe stopped before concurrent/update/latency samples. This status alone needs
+readback before claiming actual overwrite. Evidence docs/results/webdav-live-20261017.json,
+artifact12087199750. This is a failed safety gate, not a completed benchmark.
+
+Follow-up is separately gated [webdav-verify], fixed to the exact retained UUID
+namespace from this run. It reads the file, checks OPTIONS DAV/Allow, tries an invalid
+If-Match only against its own synthetic note and reads back. No extra folders,
+production Notes, backup files or credentials setup. Do not repeat the original
+probe just to hide its failure. No CAS claim without checking preserved content.
