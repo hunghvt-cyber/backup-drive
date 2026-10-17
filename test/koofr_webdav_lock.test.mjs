@@ -19,3 +19,5 @@ test('exclusive lock blocks other writes and stale token is fenced after unlock'
 test('advertised but unusable lock is detected',async()=>{const r=await lockProbe({env,fetcher:server({unsupported:true})});assert.equal(r.passed,false);assert.equal(r.errors[0].code,'ADVERTISED_LOCK_NOT_USABLE');});
 test('lock that does not protect content fails before authorized write',async()=>{const r=await lockProbe({env,fetcher:server({ignoreLock:true})});assert.equal(r.passed,false);assert.equal(r.errors[0].code,'LOCK_DOES_NOT_PROTECT_CONTENT');});
 test('a stale lock token that can overwrite content is rejected as unsafe',async()=>{const r=await lockProbe({env,fetcher:server({ignoreStale:true})});assert.equal(r.passed,false);assert.equal(r.errors[0].code,'STALE_LOCK_TOKEN_NOT_FENCED');});
+
+test('lock races and full save cycles compare base under lock, detect stale draft and leave no held lock',async()=>{const r=await lockProbe({env,fetcher:server(),racePairs:5,samples:4});assert.equal(r.passed,true);assert.equal(r.racePairsVerified,5);assert.equal(r.saveSummary.success,4);assert.equal(r.final.bytes>1800,true);assert.equal(r.possibleOutstandingLock,false);});

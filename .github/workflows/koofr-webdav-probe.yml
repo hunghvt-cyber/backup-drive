@@ -70,10 +70,10 @@ jobs:
           retention-days: 7
 
   verify-lock:
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[webdav-lock]')
+    if: github.event_name == 'push' && (contains(github.event.head_commit.message, '[webdav-lock]') || contains(github.event.head_commit.message, '[webdav-lock-stress]'))
     needs: simulation
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

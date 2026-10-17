@@ -113,3 +113,22 @@ token write denial/readback.10 simulated tests passed including ineffective/fake
 locks and stale token fencing failures. Own active lock is released best-effort;
 requested timeout60s, token never logged. A pass only permits a separate lock-aware
 adapter design; failure blocks a simple password→WebDAV Notes replacement.
+
+### Initial exclusive-lock result and bounded stress test
+
+Commit300cbb2, run38998091553 passed the actual lock diagnostic:
+https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38998091553
+Competing LOCK423; tokenless PUT423 with content preserved; own-token PUT201
+verified by GET; UNLOCK204; stale-token PUT412 with content preserved.
+Evidence docs/results/webdav-lock-initial-20261017.json. Requested timeout60s was
+not advertised in a response header; lock expiry/crash recovery remains untested.
+
+The next opt-in stress run uses this same synthetic file only:10 concurrent LOCK
+pairs, winner writes with its token and verifies content, loser reacquires and
+checks its ORIGINAL base hash under lock before returning simulated app409 without
+a stale PUT. Then10 full LOCK→GET base check→PUT(token)→GET readback→UNLOCK save
+cycles are timed.11 simulation tests cover the implementation, not live guarantees.
+This measures a locking primitive from GitHub Actions, not a production adapter.
+No Note index, share permissions, idempotent receipts, restore or Vercel/iPad route
+is implemented. WebDAV If-Match is still unsafe; revision must be checked AFTER
+acquiring the lock and every content mutation must carry the current lock token.
