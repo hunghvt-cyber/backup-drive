@@ -173,3 +173,36 @@ Rollback: no deployed Homepage changes exist to undo. Stop opt-in marker runs or
 close this draft PR. Retain the isolated synthetic folder for evidence; no broad
 cleanup commands. Existing backup workflow files are absent from the PR diff.
 No scheduled probe or keepalive task was created.
+
+## Vercel optimization trial (authorized 17/10/2026)
+
+Standalone project homepage-koofr-lab only, no production domain or Git auto-deploy.
+Two preview deployments of identical source compare iad1 and fra1; runtime region
+must be confirmed in responses. Compare default Node fetch against explicit HTTPS
+keep-alive pooling, alternating transport order, keeping all five save requests:
+LOCK → GET revision check → PUT(token) → GET byte verification → UNLOCK.
+No readback/lock shortcut. Each note is an envelope with revision/body hash and
+a bounded8-operation receipt ring. Same base is checked only after acquiring lock.
+A lost PUT response is reconciled by exact readback under the same lock; retries
+reuse opId. Unknown outcome stays uncertain rather than retrying a write blindly.
+These prototype receipts are not a production retention guarantee.
+
+The benchmark runner uses GitHub OIDC signed short-lived tokens. Preview verifies
+GitHub JWKS RS256 signature, issuer, audience, repository and ID, exact experiment
+branch/workflow, push event, timestamps and run ID before parsing credentials.
+Only that Actions job can call it. HTTPS request body carries the existing Koofr
+username/app password into Vercel memory for that request, without persisting a
+second credential or exposing it to a browser. Entire rclone config and Google
+tokens remain in Actions. No passwords/tokens/request bodies are logged.
+Preview expires automatically18/10/2026 10:00 Vietnam time; no cron or keepalive.
+
+Each run creates its own Homepage-Notes-Vercel-Probe-<runId>-<UUID> namespace; only
+fixed note.json is accessible. Creation refuses an existing folder. No delete or
+arbitrary filenames/URLs are accepted. Seed/cycle data is generated server-side.
+The new project has route-level authentication; it does not change protection on
+Homepage or Home-AI. Health GET is public and has no storage operations.
+
+Pending real measurements. Simulated20/20 pass, including scope/signature rejection,
+concurrent same-base write, replay, lost PUT reply, failed readback and failed unlock.
+Readback failure cannot become a false verified save; failed unlock retains verified
+commit status with a cleanup warning. Lock expiry fencing remains a separate gate.
