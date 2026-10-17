@@ -2,7 +2,7 @@ name: Homepage Koofr Vercel isolated benchmark
 on:
   push:
     branches: [experiment/homepage-koofr-webdav-20261017]
-    paths: ['experiments/vercel-koofr-lab/**', 'scripts/koofr_vercel_bench.mjs', '.github/workflows/koofr-vercel-bench.yml']
+    paths: ['experiments/vercel-koofr-lab/**', 'scripts/koofr_vercel_bench.mjs', 'scripts/koofr_vercel_resilience.mjs', '.github/workflows/koofr-vercel-bench.yml']
 permissions:
   contents: read
 jobs:
@@ -16,6 +16,7 @@ jobs:
           node-version: '24'
       - run: node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs
       - run: node --check scripts/koofr_vercel_bench.mjs
+      - run: node --check scripts/koofr_vercel_resilience.mjs
   live:
     if: contains(github.event.head_commit.message, '[vercel-koofr-bench]')
     needs: simulation
@@ -49,5 +50,36 @@ jobs:
         with:
           name: homepage-koofr-vercel-${{ matrix.region }}
           path: koofr-vercel-*.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  live-resilience:
+    if: contains(github.event.head_commit.message, '[vercel-koofr-resilience]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-vercel-resilience
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Isolated expiry, deliberate TLS faults and new-file restore
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_vercel_resilience.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-vercel-resilience
+          path: koofr-vercel-resilience.local.json
           if-no-files-found: error
           retention-days: 7
