@@ -23,6 +23,9 @@
   ],
   "liveJob": "skipped",
   "newLiveKoofrVerified": false,
-  "rootCause": "unverified; annotation text unavailable through connector",
-  "requiredAction": "owner inspect run startup error; never share credentials"
+  "rootCause": "GitHub refused runner startup due to billing/spending restriction; exact failed-payment vs spending-limit branch not independently determined",
+  "requiredAction": "Account owner inspect Billing & plans and resolve the applicable restriction; do not change spending/payment settings automatically",
+  "ownerConfirmedAt": "2026-10-17T17:16:56+07:00",
+  "ownerProvidedError": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the Billing & plans section in your settings",
+  "secondaryNotice": "ubuntu-latest migration to Ubuntu 26 beginning October 19, 2026; informational, not the startup blocker"
 }

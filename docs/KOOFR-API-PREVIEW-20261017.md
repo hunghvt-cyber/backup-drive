@@ -115,7 +115,7 @@ regression after the backend changes.
 
 Deployed source8e4d4af3; previewdpl_EzLBLjkgH3d4SnV8QoMBrtM2rZ4U:
 https://homepage-koofr-6e6rdsffp-hunghvt.vercel.app/api/preview?route=health
-Driverf27c292a; [run39022865357](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39022865357) failed before any simulation step in BOTH attempts. GitHub returned no steps and no job log. Its dependent live job was skipped, so no new Koofr qualification ran. The connector returned two annotation counts but could not fetch their text; the underlying account/platform reason is not verified. Do not assume a code/test failure or claim current CI passed85 tests.
+Driverf27c292a; [run39022865357](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39022865357) failed before any simulation step in BOTH attempts. GitHub returned no steps and no job log. Its dependent live job was skipped, so no new Koofr qualification ran. The connector returned two annotation counts but could not fetch their text; the startup restriction has now been confirmed by the account owner (see update below). Do not assume a code/test failure or claim current CI passed85 tests.
 
 Standalone HTTPS smoke from the workspace separately verified health200 configured=false, owner notes503 and auth503. Evidence: [closed HTTP smoke](results/koofr-preview-http-closed-20261017.json), [local85-test summary](results/koofr-preview-simulation-20261017.json). These do not establish current live restore/CRUD behavior. Earlier live results in KOOFR-RELIABILITY-20261017.md tested source1245e4c2, not this new source.
 
@@ -144,3 +144,16 @@ that deployed HTTPS endpoint. This configuration/verification is still pending.
 
 Rollback for this experiment: stop marker-opt-in jobs and leave preview disabled.
 Nothing needs rolling back on Homepage/Blob. Keep trial namespaces/evidence for review.
+
+## Owner-confirmed startup blocker —17:16 Vietnam time
+
+The account owner supplied GitHub's error: runner startup was refused because recent
+account payments failed OR the spending limit needs increasing. This confirms a
+billing/spending restriction, not a test assertion failure. The exact billing branch
+has not been independently distinguished. The Ubuntu26 label-migration notice is
+informational and did not cause this startup refusal.
+
+Stop automatic/manual retry attempts until the owner resolves the applicable account
+restriction in Billing & plans. No paid upgrade, spending-limit increase, payment
+change or runner migration is authorized/performed. New live Koofr qualification
+remains pending;85 local checks and the closed HTTPS smoke remain valid evidence.
