@@ -1,3 +1,23 @@
+# Latest restore/API preview preparation
+
+New source8e4d4af3 fixes empty/resumable restore and adds a synthetic-only session/CSRF/share
+HTTP adapter using iron-session8.0.4. UUID Notes and1MB content/3MB serialized values
+replace the former128-slot/28KB save ceiling. Catalog240KB and snapshot export2MB remain.
+
+**85 LOCAL simulations/HTTP tests pass.** Current Actions run39022865357 failed before
+runner steps on both attempts; live qualification was skipped. Earlier live results
+below tested earlier code and do not validate the new head. Independently verified
+standalone HTTPS: health200 configured=false; Notes/auth503 closed. User-facing HTTPS
+login/CRUD and new live restore regression are pending.
+
+Start with ../../docs/KOOFR-API-PREVIEW-20261017.md for exact status, contracts,
+configuration, evidence and the startup-error account action. No production change.
+
+Run `npm ci --ignore-scripts --no-audit --no-fund --prefix experiments/vercel-koofr-lab`
+from repo root before the test command below; the pinned session library is now required.
+
+---
+
 # Koofr / Vercel isolated prototype
 
 Production Notes remains Vercel Blob. No Homepage/Home-AI deployment, main merge,
@@ -42,8 +62,8 @@ Run simulations from repo root:
 `node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs`
 Node24, no dependencies. Live jobs are marker-opt-in, not scheduled.
 
-Prototype limits:128 synthetic slots,28KB serialized Note value vs current app's
-1MB content/3MB record; no full-text search, production session/CSRF adapter, UI,
+Earlier baseline limits (superseded by new source above):128 synthetic slots,28KB
+serialized Note value. Remaining gates: no full-text search, production session/CSRF adapter, UI,
 client busy retry/offline draft handling, independent backup retention, orphan GC,
 or sustained/cold performance benchmarks. Reconnect/separate-invocation functional
 qualification has its own evidence/report above; do not infer long-outage or

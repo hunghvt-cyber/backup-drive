@@ -4,6 +4,14 @@
 
 Phạm vi chỉ là Notes/thư mục/workspace/chia sẻ trên Homepage hiện tại. Không thêm ứng dụng quản lý, không thay báo cáo NAS, GAS, chi tiêu/Gemini hay hai workflow backup hiện hữu.
 
+## Cập nhật mới: restore và API preview
+
+Source8e4d4af3 đã sửa restore rỗng, thêm marker/fingerprint để resume khởi tạo, giữ tiến độ và không ghi đè thư mục chưa xác minh. Đã chuẩn bị API preview có session riêng, Origin, revision/clientOpId và chia sẻ; hỗ trợ UUID thật và giới hạn1MB nội dung/3MB bản ghi thay cho28KB. **85 kiểm thử local đạt**, gồm HTTP với provider giả. Chi tiết: [KOOFR-API-PREVIEW-20261017.md](KOOFR-API-PREVIEW-20261017.md).
+
+Chưa kiểm chứng lại các sửa đổi mới trên Koofr: run39022865357 thất bại trước runner ở cả2 lần, không có step/log, live job bị skip. Nguyên nhân tài khoản/platform chưa xác minh; cần chủ tài khoản đọc thông báo startup trên Actions. Preview đã READY; HTTPS health200/configured=false và route Notes/auth503 được xác minh riêng. Chưa mở API tài khoản thật, chưa tích hợp UI hay đổi production.
+
+Các lỗi restore và giới hạn128slot/28KB nêu trong đánh giá gốc phía dưới là trạng thái trước sửa đổi này. Lỗi restore đã có fix/kiểm thử local nhưng live còn pending. UUID/giới hạn Note đã mở rộng; catalog240KB và export2MB vẫn là trần cần xử lý. Full-text search, draft/outbox, backup độc lập và log retention vẫn là các điểm chặn triển khai.
+
 ## Cập nhật sau đánh giá: thử reconnect và nhiều invocation
 
 [Run39020640005](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39020640005) đã đạt:13 ca lỗi/thay kết nối trên full store;50 cặp cùng Note và50 cặp khác Note giữa hai preview;150 ghi mới và150 replay;697 invocation/2 runtime; thu hồi quyền chặn writer hết khóa; cuối cùng đọc xác minh100 bản ghi. Đây là kiểm chứng thực tế mới, bổ sung cho đánh giá tĩnh ban đầu phía dưới. Chi tiết: [KOOFR-RELIABILITY-20261017.md](KOOFR-RELIABILITY-20261017.md).

@@ -1,0 +1,28 @@
+{
+  "kind": "ACTIONS_RUNNER_STARTUP_BLOCK",
+  "run": 39022865357,
+  "driverCommit": "f27c292ab7d973f77c3fb1426efe984d597ef093",
+  "attempts": [
+    {
+      "attempt": 1,
+      "simulationJob": 117367995168,
+      "conclusion": "failure",
+      "steps": null,
+      "logsAvailable": false
+    },
+    {
+      "attempt": 2,
+      "simulationJob": 117368503215,
+      "conclusion": "failure",
+      "steps": null,
+      "logsAvailable": false,
+      "startedAt": "2026-10-17T09:57:02Z",
+      "completedAt": "2026-10-17T09:57:04Z",
+      "annotationsCount": 2
+    }
+  ],
+  "liveJob": "skipped",
+  "newLiveKoofrVerified": false,
+  "rootCause": "unverified; annotation text unavailable through connector",
+  "requiredAction": "owner inspect run startup error; never share credentials"
+}
