@@ -11,7 +11,7 @@ export function validateInput(input,runId){
  const {user,password,namespace,mode,transport,opId,baseRevision}=input;
  must(typeof user==='string'&&user.length>0&&user.length<300&&!/[:\r\n]/.test(user)&&typeof password==='string'&&password.length>0&&password.length<600&&!/[\r\n]/.test(password),'INVALID_CREDENTIAL_FORMAT');
  must(typeof namespace==='string'&&new RegExp('^Homepage-Notes-Vercel-Probe-'+runId+'-[a-f0-9-]{36}$').test(namespace),'PATH_FORBIDDEN');
- must(['seed','read','save','expiry','faults','restore','store100'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
+ must(['seed','read','save','expiry','faults','restore','store100','store-reliability'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
  if(mode==='save')must(/^[a-f0-9-]{36}$/.test(opId)&&Number.isSafeInteger(baseRevision)&&baseRevision>=0,'INVALID_OPERATION');
 }
 export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponseBytes=32000,connectionAgent}={}){
