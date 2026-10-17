@@ -95,3 +95,21 @@ namespace from this run. It reads the file, checks OPTIONS DAV/Allow, tries an i
 If-Match only against its own synthetic note and reads back. No extra folders,
 production Notes, backup files or credentials setup. Do not repeat the original
 probe just to hide its failure. No CAS claim without checking preserved content.
+
+### Precondition readback diagnostic
+
+Commitc680e7e, run38997916545:
+https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38997916545
+Readback confirmed duplicate If-None-Match:* PUT actually replaced the synthetic
+file. PUT with a guaranteed-invalid If-Match also returned201~1184ms and readback
+confirmed its new content, despite a strong ETag being available. Therefore direct
+ETag-conditional writes cannot be treated as safe on this tested endpoint.
+Evidence docs/results/webdav-preconditions-20261017.json. OPTIONS advertised DAV1,2
+and LOCK/UNLOCK; this advertisement alone does not establish working locks.
+
+Final bounded follow-up [webdav-lock] tests exclusive LOCK on the same synthetic
+file, competing lock423, denied writer/readback, own-token write, UNLOCK, then stale
+token write denial/readback.10 simulated tests passed including ineffective/fake
+locks and stale token fencing failures. Own active lock is released best-effort;
+requested timeout60s, token never logged. A pass only permits a separate lock-aware
+adapter design; failure blocks a simple password→WebDAV Notes replacement.
