@@ -1,5 +1,6 @@
 import {authorize} from '../lib/oidc.mjs';
 import {validateInput,operate} from '../lib/storage.mjs';
+import {resilience} from '../lib/resilience.mjs';
 import {randomUUID} from 'node:crypto';
 const expires=Date.parse('2026-10-18T03:00:00Z');
 async function body(request){const reader=request.body?.getReader();if(!reader)throw Error();let text='',bytes=0;const decoder=new TextDecoder();while(true){const {value,done}=await reader.read();if(done)break;bytes+=value.length;if(bytes>4096){await reader.cancel();throw Error();}text+=decoder.decode(value,{stream:true});}return JSON.parse(text+decoder.decode());}
@@ -11,7 +12,7 @@ export async function POST(request){
  try{auth=await authorize(request.headers.get('authorization')?.replace(/^Bearer /,''));}catch{return json({code:'UNAUTHORIZED'},401);}
  let input;try{input=await body(request);validateInput(input,auth.runId);}catch{return json({code:'INVALID_INPUT'},400);}
  try{
-  const result=await operate(input);const response={...result,requestId,region:process.env.VERCEL_REGION??'local',authAndParseMs:performance.now()-started-result.ms};
+  const result=await (['expiry','faults','restore'].includes(input.mode)?resilience(input):operate(input));const response={...result,requestId,region:process.env.VERCEL_REGION??'local',authAndParseMs:performance.now()-started-result.ms};
   // Metadata only: never log requests, credentials, lock tokens, body or provider XML.
   console.log(JSON.stringify({kind:'koofr-preview',requestId,region:response.region,mode:input.mode,transport:input.transport,status:result.status,code:result.code,ms:result.ms}));
   return json(response,result.status);
