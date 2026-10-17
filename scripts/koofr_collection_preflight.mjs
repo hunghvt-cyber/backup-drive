@@ -1,4 +1,5 @@
 /* Capability gate for a NEW synthetic folder only; existing backup paths are unreachable. */
+import {NoteStore} from '../experiments/vercel-koofr-lab/lib/store.mjs';
 import {credentials} from './koofr_webdav_probe.mjs';
 import {nativeTransport,lockXml,validToken} from '../experiments/vercel-koofr-lab/lib/storage.mjs';
 import {randomUUID} from 'node:crypto';
@@ -24,6 +25,21 @@ try{
  must((await call('tokenless-new-member','PUT','catalog.json','MUST NOT CREATE')).status===423,'COLLECTION_DOES_NOT_PROTECT_NEW_MEMBER');must((await call('verify-new-member-absent','GET','catalog.json')).status===404,'TOKENLESS_MEMBER_CREATED');
  const catalog='{"synthetic":true,"revision":0}';must([200,201,204].includes((await call('own-token-new-member','PUT','catalog.json',catalog,{If:'('+token+')'})).status),'LOCKED_MEMBER_CREATE_FAILED');must((await call('verify-new-member','GET','catalog.json')).text===catalog,'NEW_MEMBER_READBACK_FAILED');report.checks.newMemberProtected=true;
  const old=token;must([200,204].includes((await call('release-collection-lock','UNLOCK','',undefined,{'Lock-Token':token})).status),'UNLOCK_FAILED');token=undefined;
- must([412,423].includes((await call('stale-collection-token-member-write','PUT','note.json','MUST NOT WRITE',{If:'('+old+')'})).status),'STALE_COLLECTION_TOKEN_ACCEPTED');must((await call('verify-stale-member-preserved','GET','note.json')).text===next,'STALE_MEMBER_OVERWRITTEN');report.checks.staleCollectionTokenFenced=true;report.passed=true;
+ must([412,423].includes((await call('stale-collection-token-member-write','PUT','note.json','MUST NOT WRITE',{If:'('+old+')'})).status),'STALE_COLLECTION_TOKEN_ACCEPTED');must((await call('verify-stale-member-preserved','GET','note.json')).text===next,'STALE_MEMBER_OVERWRITTEN');report.checks.staleCollectionTokenFenced=true;
+ report.clientVariants=[];
+ for(const variant of ['untagged-sequential','tagged-sequential','tagged-parallel']){
+  const ns='Homepage-Notes-Vercel-Probe-'+process.env.GITHUB_RUN_ID+'-'+randomUUID(),base='https://app.koofr.net/dav/Koofr/'+ns+'/';let own;
+  const observations=[];
+  const wire=async(url,opts,ctx)=>{
+   if(variant.startsWith('tagged')&&opts.headers.If)opts={...opts,headers:{...opts.headers,If:'<'+base+'> '+opts.headers.If}};
+   if(variant.startsWith('tagged')&&opts.method==='UNLOCK'&&opts.headers['Lock-Token'])opts={...opts,headers:{...opts.headers,If:'<'+base+'> ('+opts.headers['Lock-Token']+')'}};
+   const r=await nativeTransport(url,opts,ctx);observations.push({label:ctx.label,method:opts.method,status:r.status,root:url===base,...(opts.method==='LOCK'?{rootMentionedInBody:r.text.includes(base)}:{})});if(opts.method==='LOCK'&&r.token)own=r.token;if(opts.method==='UNLOCK'&&[200,204].includes(r.status))own=undefined;return r;
+  };
+  const s=new NoteStore({user:c.user,password:c.password,namespace:ns},{wire});let passed=false,error;
+  try{await s.init();await s.seedBatch(0,variant==='tagged-parallel'?2:1);passed=true;}catch(e){error=/^[A-Z_]{1,80}$/.test(e.message)?e.message:'REQUEST_FAILED';}
+  let cleanupStatus;if(own){const r=await nativeTransport(base,{method:'UNLOCK',headers:{Authorization:auth,'Lock-Token':own,If:'<'+base+'> ('+own+')'}});cleanupStatus=r.status;own=undefined;}
+  report.clientVariants.push({variant,namespace:ns,passed,error,cleanupStatus,observations});
+ }
+ report.passed=report.clientVariants.some(x=>x.variant==='tagged-parallel'&&x.passed);
 }catch(e){report.errors.push({code:/^[A-Z_]{1,80}$/.test(e.message)?e.message:'REQUEST_FAILED'});}
 finally{if(report.cleanup){try{await report.cleanup();}catch{report.cleanupStatus='UNVERIFIED';}delete report.cleanup;}report.possibleOutstandingLock=!!token;await writeFile('koofr-collection-preflight.local.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));if(!report.passed||token)process.exitCode=1;}
