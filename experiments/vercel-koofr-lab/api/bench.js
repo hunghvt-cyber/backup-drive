@@ -1,5 +1,6 @@
 import {authorize} from '../lib/oidc.mjs';
 import {validateInput,operate} from '../lib/storage.mjs';
+import {storeFixture} from '../lib/store-fixtures.mjs';
 import {resilience} from '../lib/resilience.mjs';
 import {randomUUID} from 'node:crypto';
 const expires=Date.parse('2026-10-18T03:00:00Z');
@@ -10,9 +11,9 @@ export async function POST(request){
  const requestId=randomUUID(),started=performance.now();let auth;
  if(Date.now()>=expires)return json({code:'EXPERIMENT_EXPIRED'},410);
  try{auth=await authorize(request.headers.get('authorization')?.replace(/^Bearer /,''));}catch{return json({code:'UNAUTHORIZED'},401);}
- let input;try{input=await body(request);validateInput(input,auth.runId);}catch{return json({code:'INVALID_INPUT'},400);}
+ let input;try{input=await body(request);validateInput(input,auth.runId);if(input.mode==='store100'){if(input.sourceNamespace!==undefined){validateInput({...input,namespace:input.sourceNamespace},auth.runId);if(input.sourceNamespace===input.namespace)throw Error();}input={user:input.user,password:input.password,namespace:input.namespace,mode:'store100',transport:'pooled',stage:input.stage,chunk:input.chunk,sourceNamespace:input.sourceNamespace,probe:input.probe};}}catch{return json({code:'INVALID_INPUT'},400);}
  try{
-  const result=await (['expiry','faults','restore'].includes(input.mode)?resilience(input):operate(input));const response={...result,requestId,region:process.env.VERCEL_REGION??'local',authAndParseMs:performance.now()-started-result.ms};
+  const result=await (input.mode==='store100'?storeFixture(input):['expiry','faults','restore'].includes(input.mode)?resilience(input):operate(input));const response={...result,requestId,region:process.env.VERCEL_REGION??'local',authAndParseMs:performance.now()-started-result.ms};
   // Metadata only: never log requests, credentials, lock tokens, body or provider XML.
   console.log(JSON.stringify({kind:'koofr-preview',requestId,region:response.region,mode:input.mode,transport:input.transport,status:result.status,code:result.code,ms:result.ms}));
   return json(response,result.status);

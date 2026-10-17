@@ -11,14 +11,14 @@ export function validateInput(input,runId){
  const {user,password,namespace,mode,transport,opId,baseRevision}=input;
  must(typeof user==='string'&&user.length>0&&user.length<300&&!/[:\r\n]/.test(user)&&typeof password==='string'&&password.length>0&&password.length<600&&!/[\r\n]/.test(password),'INVALID_CREDENTIAL_FORMAT');
  must(typeof namespace==='string'&&new RegExp('^Homepage-Notes-Vercel-Probe-'+runId+'-[a-f0-9-]{36}$').test(namespace),'PATH_FORBIDDEN');
- must(['seed','read','save','expiry','faults','restore'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
+ must(['seed','read','save','expiry','faults','restore','store100'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
  if(mode==='save')must(/^[a-f0-9-]{36}$/.test(opId)&&Number.isSafeInteger(baseRevision)&&baseRevision>=0,'INVALID_OPERATION');
 }
-export function nativeTransport(url,options,{fault,onInjected=()=>{}}={}){
+export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponseBytes=32000}={}){
  return new Promise((resolve,reject)=>{
   const start=performance.now(),timing={},req=https.request(url,{method:options.method,headers:options.headers,agent,signal:AbortSignal.timeout(12000)},res=>{
    timing.ttfbMs=performance.now()-start;let text='',bytes=0;
-   res.setEncoding('utf8');res.on('data',chunk=>{bytes+=Buffer.byteLength(chunk);if(bytes>32000)res.destroy(Error('RESPONSE_TOO_LARGE'));else text+=chunk;});
+   res.setEncoding('utf8');res.on('data',chunk=>{bytes+=Buffer.byteLength(chunk);if(bytes>maxResponseBytes)res.destroy(Error('RESPONSE_TOO_LARGE'));else text+=chunk;});
    res.on('error',()=>reject(Error('NETWORK_OR_TIMEOUT')));res.on('end',()=>resolve({status:res.statusCode,text,token:res.headers['lock-token'],timeout:res.headers.timeout,timing:{...timing,reusedSocket:req.reusedSocket}}));
    if(fault==='after-response-headers'){onInjected({phase:fault,observedStatus:res.statusCode,socketDestroyed:true});res.destroy();req.destroy();reject(Error('NETWORK_OR_TIMEOUT'));}
   });
@@ -28,7 +28,9 @@ export function nativeTransport(url,options,{fault,onInjected=()=>{}}={}){
  });
 }
 export function createDav(input,{fetcher=fetch,nativeRequest=nativeTransport,file='note.json'}={}){
- must(['note.json','backup.json','recovered.json'].includes(file),'PATH_FORBIDDEN');
+ const member=file.match(/^note-(\d{3})-([a-f0-9-]{36})\.json$/);
+ must(['note.json','backup.json','recovered.json','catalog.json','store-backup.json'].includes(file)||(member&&Number(member[1])<=127),'PATH_FORBIDDEN');
+ const maxResponseBytes=file==='store-backup.json'?2000000:file==='catalog.json'?256000:32000;
  const auth='Basic '+Buffer.from(input.user+':'+input.password).toString('base64');
  const url=origin+'/dav/Koofr/'+input.namespace+'/'+file;const calls=[];
  async function call(label,method,body,headers={},folder=false){
@@ -36,8 +38,8 @@ export function createDav(input,{fetcher=fetch,nativeRequest=nativeTransport,fil
   try{
    const options={method,headers:{Authorization:auth,...(body===undefined?{}:{'Content-Type':method==='LOCK'?'application/xml; charset=utf-8':'application/json; charset=utf-8'}),...headers},...(body===undefined?{}:{body}),redirect:'error',signal:AbortSignal.timeout(12000)};
    const target=folder?url.slice(0,-file.length):url;let r;
-   if(input.transport==='pooled')r=await nativeRequest(target,options,{label});
-   else {const s=await fetcher(target,options);const ttfbMs=performance.now()-start;const text=await s.text();must(Buffer.byteLength(text)<=32000,'RESPONSE_TOO_LARGE');r={status:s.status,text,token:s.headers.get('lock-token'),timing:{ttfbMs}};}
+   if(input.transport==='pooled')r=await nativeRequest(target,options,{label,maxResponseBytes});
+   else {const s=await fetcher(target,options);const ttfbMs=performance.now()-start;const text=await s.text();must(Buffer.byteLength(text)<=maxResponseBytes,'RESPONSE_TOO_LARGE');r={status:s.status,text,token:s.headers.get('lock-token'),timing:{ttfbMs}};}
    row.status=r.status;row.timing=r.timing;return r;
   }catch(e){row.error='NETWORK_OR_TIMEOUT';throw Error('NETWORK_OR_TIMEOUT');}
   finally{row.ms=performance.now()-start;calls.push(row);}
