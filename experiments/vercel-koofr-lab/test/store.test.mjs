@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {NoteStore,noteId,fixtureNote,pool} from '../lib/store.mjs';
+import {exportStore,initRestore,restoreBatch} from '../lib/store-backup.mjs';
 import {storeFixture} from '../lib/store-fixtures.mjs';
 import {createDav} from '../lib/storage.mjs';
 function backend(){
@@ -59,3 +60,11 @@ test('failed batch waits for in-flight workers before collection unlock cleanup'
 test('each store session binds all inherited-lock requests to its own single-socket agent',async()=>{
  const b=backend(),i=input(),seen=new Set(),s=new NoteStore(i,{makeDav:b.makeDav,wire:(url,opts,ctx)=>{seen.add(ctx.connectionAgent);assert.equal(ctx.connectionAgent.maxSockets,1);return b.wire(url,opts,ctx);}});await s.init();await s.seedBatch(0,2);assert.equal(seen.size,1);assert.notEqual(s.agent,new NoteStore(i).agent);
 });
+
+test('incomplete restore blocks normal owner mutations; late chunk retry cannot overwrite newer edits',async()=>{
+ const b=backend(),i=input(),s=b.makeStore(i);await s.init();await s.seedBatch(0,2);await exportStore(s);const t=b.makeStore({...i,namespace:'Homepage-Notes-Vercel-Probe-123-'+randomUUID()});await initRestore(t,s);
+ for(const fn of [()=>t.list(),()=>t.createFolder('forbidden'),()=>t.deleteFolder('Công việc'),()=>t.share('folder','Công việc'),()=>t.remove(noteId(0),'old')])await assert.rejects(fn(),e=>e.status===503);
+ await restoreBatch(t,s,0);assert.equal((await restoreBatch(t,s,0)).replay,true);const n=await t.get(noteId(0));await t.save(0,{text:'Fresh post-restore edit'},n.revision,randomUUID());await assert.rejects(restoreBatch(t,s,0),e=>e.status===409);assert.equal((await t.get(n.id)).text,'Fresh post-restore edit');
+});
+
+test('narrow restore-guard fixture validates incomplete writes and delayed retry end to end',async()=>{const b=backend(),i=input();const r=await run(b,i,'restore-guards',{sourceNamespace:'Homepage-Notes-Vercel-Probe-123-'+randomUUID()});assert.equal(r.checks.lateRestoreRetryCannotOverwriteEdit,true);});

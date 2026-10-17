@@ -78,6 +78,11 @@ export async function storeFixture(input,{makeStore=x=>new NoteStore(x,{lease:x.
     const before=await store.capture();await denied(()=>restoreBatch(interrupted,source,input.chunk),503);const after=await store.capture();must(injected&&same(before.entries,after.entries),'PARTIAL_RESTORE_PUBLISHED');checks.interruptedRestoreNotPublished=true;
    }
    details=await restoreBatch(store,source,input.chunk);checks.restoreChunkVerified=true;
+  }else if(stage==='restore-guards'){
+   source=makeStore({...input,namespace:input.sourceNamespace});await source.init();await source.seedBatch(0,2);await exportStore(source);await initRestore(store,source);
+   for(const fn of [()=>store.list(),()=>store.createFolder('forbidden'),()=>store.deleteFolder('Công việc'),()=>store.share('folder','Công việc'),()=>store.remove(noteId(0),'old')])await denied(fn,503);
+   await restoreBatch(store,source,0);must((await restoreBatch(store,source,0)).replay,'RESTORE_REPLAY_FAILED');const n=await store.get(noteId(0));await store.save(0,{text:'Fresh post-restore edit'},n.revision,randomUUID());await denied(()=>restoreBatch(store,source,0),409);must((await store.get(n.id)).text==='Fresh post-restore edit','LATE_RESTORE_OVERWROTE_EDIT');
+   checks.incompleteRestoreBlocksOwnerMutations=true;checks.lateRestoreRetryCannotOverwriteEdit=true;checks.completedChunkReplayWithoutWrite=true;details={notes:2};
   }else if(stage==='restore-verify'){
    source=makeStore({...input,namespace:input.sourceNamespace});const snapshot=await loadSnapshot(source),all=await store.verifyAll();must(!all.cat.restoring&&all.records.length===104,'RESTORE_COUNT_MISMATCH');
    for(const e of Object.values(snapshot.catalog.entries)){const dest=all.cat.entries[e.id];must(same(dest,e),'RESTORE_MEMBERSHIP_MISMATCH');const restored=all.records.find(r=>r.id===e.id);must(restored&&same(restored.record,JSON.parse(snapshot.records[e.head]).value),'RESTORE_BYTE_MISMATCH');}
