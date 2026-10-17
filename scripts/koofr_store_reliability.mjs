@@ -5,10 +5,10 @@ import {faultPlans} from '../experiments/vercel-koofr-lab/lib/store-reliability.
 import {randomUUID} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
 const deployments=[
- {id:'dpl_HLdRHpQJdax7fFXz2CvHaowycbEg',endpoint:'https://homepage-koofr-6j1s1w6k2-hunghvt.vercel.app/api/bench'},
- {id:'dpl_FaNF9cRv6NhVE5KBho29LbFuKWf7',endpoint:'https://homepage-koofr-fl2denqvi-hunghvt.vercel.app/api/bench'}
+ {id:'dpl_mrCmHu8KPKKf5a5i1Q23AXNaGR1x',endpoint:'https://homepage-koofr-2i5e7wjjx-hunghvt.vercel.app/api/bench'},
+ {id:'dpl_FztSSFaAZYbY76WKQL5znRx6hiy3',endpoint:'https://homepage-koofr-92oxf6bgh-hunghvt.vercel.app/api/bench'}
 ];
-const report={kind:'KOOFR_FULL_STORE_RELIABILITY_LIVE',at:new Date().toISOString(),deployedCode:'7b5c8925479fbcc4e2674af968580a67a9839093',driverCode:process.env.GITHUB_SHA,deployments,passed:false,completed:false,requests:[],faults:[],races:[],errors:[]};
+const report={kind:'KOOFR_FULL_STORE_RELIABILITY_LIVE',at:new Date().toISOString(),deployedCode:'1245e4c27bebbe1960ab0494a7e34fd09c44d786',driverCode:process.env.GITHUB_SHA,deployments,passed:false,completed:false,requests:[],faults:[],races:[],errors:[]};
 const must=(v,c)=>{if(!v)throw Error(c);};const wait=ms=>new Promise(r=>setTimeout(r,ms));let writes=Promise.resolve();
 function persist(){writes=writes.then(()=>writeFile('koofr-store-reliability.local.json',JSON.stringify(report,null,2)+'\n'));return writes;}
 async function oidc(){const u=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);must(u.protocol==='https:'&&u.hostname.endsWith('.githubusercontent.com'),'OIDC_ENDPOINT_INVALID');u.searchParams.set('audience',audience);const r=await fetch(u,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},redirect:'error',signal:AbortSignal.timeout(10000)});must(r.ok,'OIDC_FAILED');const j=await r.json();must(typeof j.value==='string','OIDC_FAILED');return j.value;}
