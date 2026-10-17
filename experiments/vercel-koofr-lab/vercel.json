@@ -1,1 +1,13 @@
-{"framework":null,"buildCommand":"mkdir -p public","outputDirectory":"public","regions":["iad1"],"functions":{"api/bench.js":{"maxDuration":120}}}
+{
+  "framework": null,
+  "buildCommand": "mkdir -p public",
+  "outputDirectory": "public",
+  "regions": [
+    "fra1"
+  ],
+  "functions": {
+    "api/bench.js": {
+      "maxDuration": 120
+    }
+  }
+}
