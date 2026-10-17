@@ -83,7 +83,7 @@ export async function reliabilityFixture(input,{makeStore=(x,opts)=>new NoteStor
   }else{
    const s=fresh(),all=await s.verifyAll();must(all.records.length===100&&Object.values(all.cat.entries).every(e=>!e.deleted),'FINAL_100_NOTE_COUNT_MISMATCH');must(!all.cat.restoring,'FINAL_STORE_INCOMPLETE');checks.all100RecordsIntegrityVerified=true;details={stored:all.records.length,active:(await s.list()).length};
   }
-  return {status:200,code:'STORE_RELIABILITY_VERIFIED',passed:true,stage:input.stage,checks,details,metrics:sessions.flatMap(s=>s.metrics),calls:sessions.flatMap(s=>s.calls),...(privateProbe?{privateProbe}:{})};
- }catch(e){return {status:503,code:'STORE_RELIABILITY_GATE_FAILED',passed:false,stage:input.stage,checks,details,metrics:sessions.flatMap(s=>s.metrics),calls:sessions.flatMap(s=>s.calls),errors:[short(e)]};}
+  return {status:200,code:'STORE_RELIABILITY_VERIFIED',passed:true,stage:input.stage,checks,details,ms:performance.now()-started,metrics:sessions.flatMap(s=>s.metrics),calls:sessions.flatMap(s=>s.calls),...(privateProbe?{privateProbe}:{})};
+ }catch(e){return {status:503,code:'STORE_RELIABILITY_GATE_FAILED',passed:false,stage:input.stage,checks,details,ms:performance.now()-started,metrics:sessions.flatMap(s=>s.metrics),calls:sessions.flatMap(s=>s.calls),errors:[short(e)]};}
  finally{for(const s of sessions)s.agent.destroy();}
 }
