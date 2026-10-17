@@ -3,7 +3,7 @@
 Production Notes remains Vercel Blob. No production adapter, migration, UI or
 backup/report change is included here. Do not merge/deploy into Homepage/Home-AI.
 
-Measured on17 October2026:80/80 verified saves;10/10 lock races;20/20 simulated
+Measured on17 October2026:80/80 verified saves;10/10 lock races;29/29 simulated
 tests. Frankfurt + explicit native HTTPS pool: n20, server p50=973ms, p95=1484ms;
 GitHub-driver API wall p50=1258ms, p95=1676ms. All five save requests are retained.
 Source/methodology/raw evidence: ../../docs/HOMEPAGE-KOOFR-WEBDAV-20261017.md.
@@ -23,7 +23,7 @@ Run simulation: node --test experiments/vercel-koofr-lab/test/*.test.mjs
 (from repository root). Node24, no dependencies to install. Live run instructions,
 immutable preview URLs, credential flow and rollback are in the report above.
 
-Not yet verified: lock expiry/crash fencing, actual network outages, idle/cold start,
+Not yet verified: literal process kill and natural network outages, idle/cold start,
 100+ Note index/ACL/share revocation, restore, browser/offline draft safety and the
 actual iPad/company network. Receipt ring is bounded8 and is not indefinite
 idempotency/history. Prototype improvement is not authorization for production.
