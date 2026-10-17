@@ -4,6 +4,12 @@
 
 Phạm vi chỉ là Notes/thư mục/workspace/chia sẻ trên Homepage hiện tại. Không thêm ứng dụng quản lý, không thay báo cáo NAS, GAS, chi tiêu/Gemini hay hai workflow backup hiện hữu.
 
+## Cập nhật sau đánh giá: thử reconnect và nhiều invocation
+
+[Run39020640005](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39020640005) đã đạt:13 ca lỗi/thay kết nối trên full store;50 cặp cùng Note và50 cặp khác Note giữa hai preview;150 ghi mới và150 replay;697 invocation/2 runtime; thu hồi quyền chặn writer hết khóa; cuối cùng đọc xác minh100 bản ghi. Đây là kiểm chứng thực tế mới, bổ sung cho đánh giá tĩnh ban đầu phía dưới. Chi tiết: [KOOFR-RELIABILITY-20261017.md](KOOFR-RELIABILITY-20261017.md).
+
+Gate reconnect tuần tự/nhiều invocation đã đạt trong phạm vi bài thử hữu hạn; không còn là điểm chưa kiểm chứng hoàn toàn. Vẫn cần kiểm tra crash/outage dài hơn và hoàn thiện API/session, giới hạn dữ liệu, tìm kiếm, bản nháp, backup/log. Hai lỗi restore tĩnh bên dưới chưa sửa. Chưa tích hợp UI hoặc đổi production. Ý tưởng sắp xếp Note bằng phím mũi tên: [NOTES-IDEAS.md](NOTES-IDEAS.md), triển khai sau khi vận hành ổn định.
+
 ## Bằng chứng đã có, và giới hạn của nó
 
 - Homepage main đối chiếu: `a09b63b2c520312a70c8e13b645537f62fb7711a`; prototype trước đánh giá: `abb8e392d6f1d00b14d1ae5efb89fdeba9860876`.
@@ -39,9 +45,9 @@ P0 nghĩa là phải giải quyết trước khi cho dữ liệu thật vào bac
 
 GC chưa có. Cần chính sách retention có giới hạn và hành động khi gần đầy trước vận hành dài hạn. Có thể trì hoãn tự động xóa vật lý nếu tạm dùng giới hạn/cảnh báo và dọn có kiểm soát. GC sau này chỉ xóa khi chứng minh không còn HEAD/backup tham chiếu, qua thời gian an toàn và dưới khóa phù hợp; giữ tombstone để không hồi sinh Note đã xóa.
 
-## Trình tự nên làm tiếp
+## Lộ trình ban đầu và cập nhật sau bài thử mới
 
-1. **Kiểm chứng rủi ro cao nhất trước:** mở rộng thử lỗi trên full store với request Vercel độc lập và thay kết nối. Đề xuất ít nhất 50 cặp cạnh tranh cùng Note và khác Note; thử revoke/move/delete xen kẽ, op retry sau receipt eviction, hết khóa khi giao dịch chưa xong và process dừng trước/sau publish. Nếu có lost update, double commit hoặc stale writer publish thành công, dừng hướng chuyển Notes sang Koofr.
+1. **Phần đã đạt:** thử lỗi trên full store với request Vercel độc lập và thay kết nối đã hoàn tất trong run39020640005. Những biến thể move/delete xen kẽ, receipt eviction trong outage và dừng process dưới đây vẫn là phần mở rộng chưa chạy. Đề xuất ít nhất 50 cặp cạnh tranh cùng Note và khác Note; thử revoke/move/delete xen kẽ, op retry sau receipt eviction, hết khóa khi giao dịch chưa xong và process dừng trước/sau publish. Nếu có lost update, double commit hoặc stale writer publish thành công, dừng hướng chuyển Notes sang Koofr.
 2. Nếu an toàn đạt: hoàn thiện adapter/security/contracts và bỏ giới hạn fixture; tạo UI preview dùng dữ liệu giả trên Homepage hiện tại. Không mở rộng thêm ứng dụng.
 3. Đo tối thiểu 100 save và 100 get từ Vercel ở cấu hình dự định, tách cold/warm, 100 và 500 Notes, tải một người và đồng thời. Thu cả thất bại/423/retry và thời gian hoàn tất người dùng, không chỉ successful latency. Mốc thảo luận đề xuất: save p50 ≤3 s, p95 ≤8 s, timeout ≤1%; không coi các mốc này là đã đạt. Root lock phải có queue/backoff hữu hạn; không giấu thời gian chờ khỏi kết quả.
 4. Thử iPad thực tế: mở, sửa liên tục, chuyển tab, reload, khóa màn hình, bật/tắt mạng, share/revoke giữa hai phiên; phục hồi bản nháp và sao lưu độc lập. Chỉ sau đó mới cân nhắc pilot dữ liệu thật, cần người dùng cho phép.
@@ -56,4 +62,4 @@ Adapter lâu dài cần credential phía server của project preview/production
 
 Fixture POST hiện tự hết hiệu lực **18/10/2026 03:00 UTC = 10:00 Việt Nam**, do giới hạn thử nghiệm chủ động trong code. Muốn chạy tiếp cần bản preview với cửa sổ thử mới có giới hạn; không tắt rào chắn này để biến fixture thành API người dùng. Lượt đánh giá này không gia hạn hay deploy lại.
 
-**Quyết định hiện tại:** giữ production trên Blob; ưu tiên thử full-store reconnect/nhiều invocation trước khi đầu tư tích hợp UI. Tình trạng quota/khóa của private Notes Blob chưa được xác minh độc lập trong lượt đánh giá này, không dùng làm lý do bắt buộc chuyển kho.
+**Quyết định hiện tại:** giữ production trên Blob. Bài thử full-store reconnect/nhiều invocation đã đạt; tiếp theo sửa các trường hợp restore còn thiếu và hoàn thiện adapter/security/contracts trên preview dữ liệu giả. Chưa đủ điều kiện dùng dữ liệu thật. Tình trạng quota/khóa của private Notes Blob chưa được xác minh độc lập trong lượt đánh giá này, không dùng làm lý do bắt buộc chuyển kho.

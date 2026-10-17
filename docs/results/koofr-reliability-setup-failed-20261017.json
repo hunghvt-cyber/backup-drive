@@ -1,0 +1,40 @@
+{
+  "kind": "KOOFR_FULL_STORE_RELIABILITY_LIVE",
+  "at": "2026-10-17T07:13:14.359Z",
+  "deployedCode": "7b5c8925479fbcc4e2674af968580a67a9839093",
+  "driverCode": "006a0c340914a656700a1a7cbf0e9f60a2b5cbc7",
+  "deployments": [
+    {
+      "id": "dpl_HLdRHpQJdax7fFXz2CvHaowycbEg",
+      "endpoint": "https://homepage-koofr-6j1s1w6k2-hunghvt.vercel.app/api/bench"
+    },
+    {
+      "id": "dpl_FaNF9cRv6NhVE5KBho29LbFuKWf7",
+      "endpoint": "https://homepage-koofr-fl2denqvi-hunghvt.vercel.app/api/bench"
+    }
+  ],
+  "passed": false,
+  "completed": false,
+  "requests": [],
+  "faults": [],
+  "races": [],
+  "errors": [
+    {
+      "code": "REQUEST_OUTCOME_UNVERIFIED"
+    }
+  ],
+  "credentialSource": "existing_koofr_remote",
+  "namespace": "Homepage-Notes-Vercel-Probe-39012800853-d3f26ba0-8131-4db8-be7e-0e24ee08c552",
+  "health": [],
+  "runtimeIds": [],
+  "requestIdsVerifiedUnique": true,
+  "summary": {
+    "faultCases": 0,
+    "faultPassed": 0,
+    "samePairs": 0,
+    "differentPairs": 0,
+    "busyResponses": 0,
+    "invocations": 0,
+    "runtimes": 0
+  }
+}

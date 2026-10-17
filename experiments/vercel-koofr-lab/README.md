@@ -6,12 +6,17 @@ real Notes migration, existing backup workflow or NAS/report/GAS changes.
 **Actual full-store trial passed:**100 original Notes read/verified, folders,
 checklists/history, note/folder share isolation and revoke, independent TLS-session
 same-base race, expired/revoked writer fencing, and104-record full restore
-(100 active +4 tombstones).43 simulations pass. A separate two-Note live follow-up
+(100 active +4 tombstones).59 simulations pass, including the new full-store reliability fixtures. A separate two-Note live follow-up
 verified incomplete restore and late chunk retry guards.
 
 Full backend save p50=2093ms, p95/max=5296ms (n15 committed saves in one functional
 run). Earlier973ms was a different single-Note primitive; do not use it as the
 full backend benchmark. No iPad/browser/public URL end-to-end or SLA claim.
+
+Latest:13 full-store socket fault cases and100 cross-preview race pairs passed,
+697 independent invocations,150 new writes/150 cross-preview replays, final100
+records verified. See ../../docs/KOOFR-RELIABILITY-20261017.md. This is a bounded
+functional pass, not production readiness.
 
 Start with ../../docs/KOOFR-STORE100-20261017.md for schema, tradeoffs, failed runs,
 correction, exact live evidence and remaining gates. Earlier primitive performance:
@@ -23,6 +28,10 @@ correction, exact live evidence and remaining gates. Earlier primitive performan
 - lib/store-backup.mjs: integrity-checked snapshot, new-epoch restore, old links
   revoked, partial restore hidden and late retry blocked after newer edits.
 - lib/store-fixtures.mjs: OIDC-only synthetic tests; no generic public Notes API.
+- lib/store-reliability.mjs: 13 full-store TLS fault/replacement cases, independent
+  invocation race/replay and expired shared-writer publication checks.
+  Live methodology/results: ../../docs/KOOFR-RELIABILITY-20261017.md.
+- Future Note reordering idea (deferred): ../../docs/NOTES-IDEAS.md.
 - Each store session MUST keep maxSockets=1: real inherited-lock writes failed
   on parallel sockets. Do not remove this workaround without repeating tests.
 - lib/storage.mjs / resilience.mjs: original primitive and internal fault hooks.
@@ -36,5 +45,7 @@ Node24, no dependencies. Live jobs are marker-opt-in, not scheduled.
 Prototype limits:128 synthetic slots,28KB serialized Note value vs current app's
 1MB content/3MB record; no full-text search, production session/CSRF adapter, UI,
 client busy retry/offline draft handling, independent backup retention, orphan GC,
-or sustained/cold/reconnect/separate-invocation benchmarks. Backups are on the same
+or sustained/cold performance benchmarks. Reconnect/separate-invocation functional
+qualification has its own evidence/report above; do not infer long-outage or
+process-kill recovery from it. Backups are on the same
 Koofr account; hashes detect accidental corruption, not malicious rewriting.

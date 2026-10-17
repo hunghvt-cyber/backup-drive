@@ -1,0 +1,11 @@
+{
+  "kind": "SIMULATED_ONLY",
+  "tests": 59,
+  "passed": 59,
+  "failed": 0,
+  "command": "node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs",
+  "provider": "in-memory fake WebDAV with inherited locks",
+  "liveNetwork": false,
+  "githubRun": 39020640005,
+  "githubJob": 117361578178
+}

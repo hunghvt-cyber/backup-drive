@@ -1,0 +1,658 @@
+{
+  "kind": "KOOFR_FULL_STORE_RELIABILITY_SUMMARY",
+  "at": "2026-10-17T09:19:02.150Z",
+  "passed": true,
+  "completed": true,
+  "deployedCode": "1245e4c27bebbe1960ab0494a7e34fd09c44d786",
+  "driverCode": "8104cdf09b8059b20d136f0ace4960ccdef20fe5",
+  "deployments": [
+    {
+      "id": "dpl_mrCmHu8KPKKf5a5i1Q23AXNaGR1x",
+      "endpoint": "https://homepage-koofr-2i5e7wjjx-hunghvt.vercel.app/api/bench"
+    },
+    {
+      "id": "dpl_FztSSFaAZYbY76WKQL5znRx6hiy3",
+      "endpoint": "https://homepage-koofr-92oxf6bgh-hunghvt.vercel.app/api/bench"
+    }
+  ],
+  "summary": {
+    "faultCases": 13,
+    "faultPassed": 13,
+    "samePairs": 50,
+    "differentPairs": 50,
+    "busyResponses": 104,
+    "invocations": 697,
+    "runtimes": 2
+  },
+  "errors": [],
+  "faults": [
+    {
+      "case": "lost-lock-reply",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-lock-reply",
+        "initial": {
+          "status": 503,
+          "code": "NETWORK_OR_TIMEOUT"
+        },
+        "injections": [
+          {
+            "label": "collection-lock",
+            "phase": "after-response-headers",
+            "observedStatus": 200,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "ms": 68.51270600000862,
+            "providerCalls": 1
+          }
+        ],
+        "busyObserved": true,
+        "publishedBeforeRetry": false,
+        "retry": {
+          "replay": false,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:2"
+        },
+        "reconnectedSocketObserved": false,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-base-read",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-base-read",
+        "initial": {
+          "status": 503,
+          "code": "NETWORK_OR_TIMEOUT"
+        },
+        "injections": [
+          {
+            "label": "catalog-read",
+            "phase": "after-response-headers",
+            "observedStatus": 200,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "ms": 443.6130600000033,
+            "providerCalls": 3
+          }
+        ],
+        "publishedBeforeRetry": false,
+        "retry": {
+          "replay": false,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:3"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "before-immutable",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "before-immutable",
+        "initial": {
+          "status": 503,
+          "code": "IMMUTABLE_OUTCOME_UNKNOWN"
+        },
+        "injections": [
+          {
+            "label": "immutable-create",
+            "phase": "before-send",
+            "requestBodySubmitted": false,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "IMMUTABLE_OUTCOME_UNKNOWN",
+            "committed": false,
+            "ms": 306.0984950000129,
+            "providerCalls": 7
+          }
+        ],
+        "publishedBeforeRetry": false,
+        "retry": {
+          "replay": false,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:4"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-immutable-reply",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-immutable-reply",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:5",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "immutable-create",
+            "phase": "after-response-headers",
+            "observedStatus": 201,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 1823.0366590000049,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:5"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-immutable-verify",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-immutable-verify",
+        "initial": {
+          "status": 503,
+          "code": "NETWORK_OR_TIMEOUT"
+        },
+        "injections": [
+          {
+            "label": "immutable-verify",
+            "phase": "after-response-headers",
+            "observedStatus": 200,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "ms": 1314.2900110000046,
+            "providerCalls": 7
+          }
+        ],
+        "publishedBeforeRetry": false,
+        "retry": {
+          "replay": false,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:6"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "before-publish",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "before-publish",
+        "initial": {
+          "status": 503,
+          "code": "CATALOG_OUTCOME_UNKNOWN"
+        },
+        "injections": [
+          {
+            "label": "catalog-publish",
+            "phase": "before-send",
+            "requestBodySubmitted": false,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "CATALOG_OUTCOME_UNKNOWN",
+            "committed": false,
+            "ms": 1180.3326910000178,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": false,
+        "retry": {
+          "replay": false,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:7"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-publish-reply",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-publish-reply",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:8",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "catalog-publish",
+            "phase": "after-response-headers",
+            "observedStatus": 201,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 2080.1949960000056,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:8"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-publish-verify",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-publish-verify",
+        "initial": {
+          "status": 503,
+          "code": "NETWORK_OR_TIMEOUT"
+        },
+        "injections": [
+          {
+            "label": "catalog-verify",
+            "phase": "after-response-headers",
+            "observedStatus": 200,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "ms": 1876.0865840000042,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:9"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-publish-and-reconcile",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-publish-and-reconcile",
+        "initial": {
+          "status": 503,
+          "code": "NETWORK_OR_TIMEOUT"
+        },
+        "injections": [
+          {
+            "label": "catalog-publish",
+            "phase": "after-response-headers",
+            "observedStatus": 201,
+            "socketDestroyed": true
+          },
+          {
+            "label": "catalog-reconcile",
+            "phase": "after-response-headers",
+            "observedStatus": 200,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "ms": 1351.559104999993,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:10"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-unlock-request",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-unlock-request",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:11",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "collection-unlock",
+            "phase": "before-send",
+            "requestBodySubmitted": false,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 3507.2772600000026,
+            "providerCalls": 9,
+            "cleanupWarning": "LOCK_RELEASE_UNVERIFIED"
+          }
+        ],
+        "busyObserved": true,
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:11"
+        },
+        "reconnectedSocketObserved": false,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "lost-unlock-reply",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "lost-unlock-reply",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:12",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "collection-unlock",
+            "phase": "after-response-headers",
+            "observedStatus": 204,
+            "socketDestroyed": true
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 1296.843583000009,
+            "providerCalls": 9,
+            "cleanupWarning": "LOCK_RELEASE_UNVERIFIED"
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:12"
+        },
+        "reconnectedSocketObserved": false,
+        "deliberateReplacementObserved": false
+      }
+    },
+    {
+      "case": "replace-socket-after-base",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "replace-socket-after-base",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:13",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "catalog-read",
+            "phase": "replace-after-success",
+            "socketDestroyed": true,
+            "observedStatus": 200
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 1616.8702899999917,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:13"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": true
+      }
+    },
+    {
+      "case": "replace-socket-after-immutable",
+      "passed": true,
+      "checks": {
+        "injectedRealTransportFault": true,
+        "noFalseConfirmation": true,
+        "exactlyOnePublication": true,
+        "retainedDraftCanRetry": true
+      },
+      "details": {
+        "case": "replace-socket-after-immutable",
+        "initial": {
+          "status": 200,
+          "result": {
+            "id": "00000000-0000-4000-8000-000000000000",
+            "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:14",
+            "replay": false
+          }
+        },
+        "injections": [
+          {
+            "label": "immutable-verify",
+            "phase": "replace-after-success",
+            "socketDestroyed": true,
+            "observedStatus": 200
+          }
+        ],
+        "initialMetrics": [
+          {
+            "operation": "save-note",
+            "code": "OK",
+            "committed": true,
+            "ms": 3518.936994000018,
+            "providerCalls": 9
+          }
+        ],
+        "publishedBeforeRetry": true,
+        "retry": {
+          "replay": true,
+          "revision": "abf86ae3-e3dc-4e76-95db-cddbd0fa9312:14"
+        },
+        "reconnectedSocketObserved": true,
+        "deliberateReplacementObserved": true
+      }
+    }
+  ],
+  "crossDeploymentRevoke": {
+    "passed": true,
+    "unpublishedOrphanObserved": true,
+    "expiredPublicationFenced": true,
+    "revokedRetryDenied": true
+  },
+  "final": {
+    "stored": 100,
+    "active": 100
+  },
+  "endpoints": [
+    {
+      "endpoint": 0,
+      "invocations": 288,
+      "runtimeIds": [
+        "41157ae0-927c-42f3-b661-6065d4d05880"
+      ],
+      "regions": [
+        "fra1"
+      ]
+    },
+    {
+      "endpoint": 1,
+      "invocations": 409,
+      "runtimeIds": [
+        "039375fa-9105-4646-80fd-7cc8c525ab60"
+      ],
+      "regions": [
+        "fra1"
+      ]
+    }
+  ],
+  "requestIdsVerifiedUnique": true,
+  "raceSavesPublishedServerMs": {
+    "n": 150,
+    "p50": 2176.03,
+    "p95": 4799.23,
+    "max": 7727.88
+  },
+  "sameNotePairWallMs": {
+    "n": 50,
+    "p50": 4658.99,
+    "p95": 6226.81,
+    "max": 7654.32
+  },
+  "differentNotePairWallMs": {
+    "n": 50,
+    "p50": 8241.69,
+    "p95": 11208.43,
+    "max": 14161.33
+  },
+  "sourceBytes": 1965532,
+  "sourceSha256": "b3655e2910677ca514e83f53bd1d9eac43fc106cab98d03f6a0d85732c870ac9",
+  "limitations": [
+    "Functional checks, not an iPad benchmark or SLA",
+    "Intentional faults/lease waits and BUSY are kept separate from published-save timings",
+    "Configured/deployment and VERCEL_REGION say fra1; runtime-log envelope reported iad1, physical region not independently settled",
+    "No literal process kill, long provider outage, cross-region soak or production API/UI tested"
+  ],
+  "gzipBytes": 188231,
+  "gzipSha256": "15c0b583a1e0d68a4a62024a6c52465baa2a82631a47f119cadebc60727764ac"
+}
