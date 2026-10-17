@@ -206,3 +206,88 @@ Pending real measurements. Simulated20/20 pass, including scope/signature reject
 concurrent same-base write, replay, lost PUT reply, failed readback and failed unlock.
 Readback failure cannot become a false verified save; failed unlock retains verified
 commit status with a cleanup warning. Lock expiry fencing remains a separate gate.
+
+### Vercel actual result — 17/10/2026
+
+Source4a5a5b2ade3a8c47a44ab74520e74f968b434e4c; runner/workflow
+06fdfb0b37dbfccc0b292ca9210f6bbdb9428cc0. Actions run39000235408:
+https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39000235408
+Both live region jobs and20 simulated tests passed. Measured actual runtime regions
+were iad1 and fra1 (confirmed in each response, not inferred from an intended config).
+Deployment IDs/URLs are in docs/results/vercel-deployments-20261017.json. The first
+empty lab scaffold was assigned the new lab production alias automatically; the
+measurements use two subsequent target=null deployments. Homepage/Home-AI production
+were not deployed or modified. No credentials were persisted in the new lab.
+
+Full verified save (all five sequential requests retained), milliseconds:
+
+| Runtime / transport | n | server p50 | server p95 | driver API wall p50 | driver API wall p95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| iad1 / default fetch |20|2532|3882|2609|3951|
+| iad1 / explicit HTTPS pool |20|1520|1889|1610|1971|
+| fra1 / default fetch |20|1416|2039|1622|2232|
+| fra1 / explicit HTTPS pool |20|973|1484|1258|1676|
+
+All80 measured saves verified; no failed/timed-out save observed. This small sample
+cannot establish a<1% failure probability. p95 is nearest rank19/20, not an SLA.
+Two jobs ran concurrently on the same Koofr account with separate namespaces;
+provider load and time variance are not isolated. Order alternated each round.
+The explicit pool was faster in20/20 paired rounds in iad1 and18/20 in fra1.
+Native HTTPS measurements confirmed reused sockets in100/100 benchmark calls per
+region. Default Node fetch also has pooling; it was NOT instrumented for socket
+reuse, so the speed difference cannot all be attributed to avoiding TLS handshakes.
+Transport change includes native HTTP implementation/default headers/pool behavior.
+
+At fra1 explicit pool, mean total1019.26ms is accounted for by phase means:
+LOCK46.54ms(4.57%), base GET169.74ms(16.65%), PUT611.44ms(59.99%),
+readback181.15ms(17.77%), UNLOCK10.18ms(1.00%), other0.22ms(0.02%).
+These shares use means (sum is valid), not sums of independent medians. Individual
+TTFB/socket timings are retained in the raw sanitized results. PUT includes network
+and remote processing; we cannot split Koofr internals from external observations.
+Verified read p50 is148ms at fra1 pooled versus299ms at iad1 pooled.
+
+Correctness exercised on the actual Vercel path:
+- Five concurrent same-base pairs per region: exactly one verified commit; the
+  other busy423 or conflict409. Losing editor reacquired and got conflict409.
+- Retried winning operation returned its receipt without increasing revision.
+- An explicitly stale base was rejected409 without a PUT.
+- Final revision45 in each namespace:40 measured commits +5 race winners.
+- Anonymous POST denied401 before credentials/storage operations.
+- No unresolved lock-release warnings or observed ambiguous writes.
+Actual network interruption, expiry and crash recovery were NOT injected; ambiguous
+PUT/readback/unlock failures are simulated tests only.
+
+Raw sanitized request/phase measurements are committed (not just seven-day artifacts):
+- docs/results/vercel-koofr-iad1-20261017.json (104 API samples)
+- docs/results/vercel-koofr-fra1-20261017.json (104 API samples)
+- docs/results/vercel-koofr-summary-20261017.json (summary and complete phase accounting)
+Artifacts12088987013(iad1) and12088098914(fra1) are the original formatted reports.
+
+Decision: select fra1 + explicit bounded HTTPS agent as the next prototype candidate.
+No lock or verification roundtrip was removed. Against the same-run iad1/fetch
+control, server median falls61.6%; same-region fra1 transport comparison falls31.3%.
+This is evidence of improvement, not of production readiness or Keep-like iPad UX.
+These are Vercel→Koofr saves and GitHub-driver→Vercel→Koofr wall times; no iPad/company
+network, offline editing, full UI, 100-Note indexing, ACL/revocation or restore benchmark
+has been run. Health was called before seed and timed samples, so cold-start/idle
+performance remains unmeasured. Existing Notes production remains private Blob.
+
+### Repeat/update and rollback
+
+No new account setup was needed. Update this branch through GitHub; deploy only
+experiments/vercel-koofr-lab source to the dedicated lab with the Vercel connector.
+Set the LAB project's resourceConfig.functionDefaultRegions before deploying each
+region; deployment settings alone did not change the actual runtime in this trial.
+Use the resulting immutable preview URLs in scripts/koofr_vercel_bench.mjs and a
+commit containing [vercel-koofr-bench] to opt in to the bounded matrix run. The OIDC
+identity is locked to this workflow and branch. Normal docs/code commits do not
+run live measurements. Expiry is explicit in api/bench.js; extending it is a source
+change/deployment, never automatic. No Vercel API token/Koofr password is added to
+GitHub source. The existing RCLONE_CONFIG_CONTENT secret stays in the backup repo;
+only Koofr username/password go to Vercel memory over HTTPS while running.
+
+Rollback/stop: leave production untouched and stop marker runs. After the explicit
+expiry, every benchmark POST returns410 before authentication or storage access.
+Optionally remove only the dedicated lab deployments/project using its recorded ID;
+do not delete Homepage/Home-AI or change their domains. Retain the two synthetic
+folders as evidence; no real-data cleanup/migration/backup changes are part of this PR.

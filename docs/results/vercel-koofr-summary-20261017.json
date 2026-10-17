@@ -1,0 +1,360 @@
+{
+  "runId": 39000235408,
+  "deployedCode": "4a5a5b2ade3a8c47a44ab74520e74f968b434e4c",
+  "driverCommit": "06fdfb0b37dbfccc0b292ca9210f6bbdb9428cc0",
+  "scope": "GitHub runner -> Vercel API -> Koofr; synthetic data; warm/first-use mixed, no idle/cold-start guarantee",
+  "regions": {
+    "iad1": {
+      "passed": true,
+      "namespace": "Homepage-Notes-Vercel-Probe-39000235408-422d3036-379a-4422-9934-5f9a6ccb11f7",
+      "summary": {
+        "fetch": {
+          "attempted": 20,
+          "verified": 20,
+          "serverMs": {
+            "n": 20,
+            "p50": 2532.174925999978,
+            "p95": 3882.4513819999993,
+            "max": 4840.4271829999925
+          },
+          "wallMs": {
+            "n": 20,
+            "p50": 2609.2003949999926,
+            "p95": 3951.3900399999984,
+            "max": 4901.387008999998
+          },
+          "phases": {
+            "lock": {
+              "n": 20,
+              "p50": 136.52939199999673,
+              "p95": 266.29547099999036,
+              "max": 284.9519819999987
+            },
+            "base-under-lock": {
+              "n": 20,
+              "p50": 494.5101990000112,
+              "p95": 708.2376859999786,
+              "max": 898.2279939999862
+            },
+            "locked-put": {
+              "n": 20,
+              "p50": 979.2504530000151,
+              "p95": 1971.0354000000225,
+              "max": 2987.5573589999985
+            },
+            "readback": {
+              "n": 20,
+              "p50": 495.11444799997844,
+              "p95": 844.1715459999978,
+              "max": 1188.4181469999894
+            },
+            "unlock": {
+              "n": 20,
+              "p50": 311.8600870000082,
+              "p95": 446.4328230000101,
+              "max": 482.52526600001147
+            }
+          },
+          "readServerMs": {
+            "n": 20,
+            "p50": 486.24580199999036,
+            "p95": 680.20614200001,
+            "max": 795.1707210000022
+          }
+        },
+        "pooled": {
+          "attempted": 20,
+          "verified": 20,
+          "serverMs": {
+            "n": 20,
+            "p50": 1519.865931999986,
+            "p95": 1889.2484229999827,
+            "max": 2135.3708960000076
+          },
+          "wallMs": {
+            "n": 20,
+            "p50": 1610.0272209999966,
+            "p95": 1971.419621000001,
+            "max": 2196.646028999996
+          },
+          "phases": {
+            "lock": {
+              "n": 20,
+              "p50": 136.07172599999467,
+              "p95": 185.94460999997682,
+              "max": 242.45316400000593
+            },
+            "base-under-lock": {
+              "n": 20,
+              "p50": 253.5071609999868,
+              "p95": 446.82652799997595,
+              "max": 487.56079399999
+            },
+            "locked-put": {
+              "n": 20,
+              "p50": 738.2153249999974,
+              "p95": 1047.4902640000073,
+              "max": 1347.643122999987
+            },
+            "readback": {
+              "n": 20,
+              "p50": 256.9956969999912,
+              "p95": 433.62097899999935,
+              "max": 536.7056520000042
+            },
+            "unlock": {
+              "n": 20,
+              "p50": 97.91773600000306,
+              "p95": 119.85877699998673,
+              "max": 123.3450549999834
+            }
+          },
+          "readServerMs": {
+            "n": 21,
+            "p50": 299.46610799999326,
+            "p95": 547.5277029999997,
+            "max": 712.3297109999985
+          }
+        }
+      },
+      "racePairsVerified": 5,
+      "finalRevision": 45,
+      "apiRequests": 104,
+      "checks": {
+        "unauthenticatedBlocked": true,
+        "replayWithoutNewRevision": true,
+        "staleConflict": true
+      },
+      "errors": [],
+      "profiles": {
+        "fetch": {
+          "meanServerMs": 2786.4111246999987,
+          "phaseMeanMs": {
+            "lock": 155.44166624999633,
+            "base-under-lock": 532.515099749995,
+            "locked-put": 1213.9368865000047,
+            "readback": 562.5129550999998,
+            "unlock": 321.8030695500071
+          },
+          "phasePercentOfMeanServer": {
+            "lock": 5.578561787673457,
+            "base-under-lock": 19.1111460555674,
+            "locked-put": 43.56632356722679,
+            "readback": 20.187722842247954,
+            "unlock": 11.549016105247365
+          },
+          "unattributedMeanMs": 0.20144754999591896,
+          "pooledReuseObserved": {
+            "reused": 0,
+            "instrumentedCalls": 0
+          },
+          "failedSaveCalls": 0
+        },
+        "pooled": {
+          "meanServerMs": 1604.5209661999986,
+          "phaseMeanMs": {
+            "lock": 143.35502909999778,
+            "base-under-lock": 276.56502604999986,
+            "locked-put": 795.764364799999,
+            "readback": 286.49618210000483,
+            "unlock": 102.13858964999744
+          },
+          "phasePercentOfMeanServer": {
+            "lock": 8.934444118826741,
+            "base-under-lock": 17.23661029528279,
+            "locked-put": 49.59513658987049,
+            "readback": 17.85555864555116,
+            "unlock": 6.36567497724216
+          },
+          "unattributedMeanMs": 0.20177449999960118,
+          "pooledReuseObserved": {
+            "reused": 100,
+            "instrumentedCalls": 100
+          },
+          "failedSaveCalls": 0
+        }
+      },
+      "pairedRounds": {
+        "n": 20,
+        "pooledFaster": 20,
+        "medianReductionMs": 989.4244255000085
+      }
+    },
+    "fra1": {
+      "passed": true,
+      "namespace": "Homepage-Notes-Vercel-Probe-39000235408-04ae4f4a-8d28-4f9a-887f-93164fed1c6e",
+      "summary": {
+        "fetch": {
+          "attempted": 20,
+          "verified": 20,
+          "serverMs": {
+            "n": 20,
+            "p50": 1415.6309949999995,
+            "p95": 2039.1841089999944,
+            "max": 2387.959044999996
+          },
+          "wallMs": {
+            "n": 20,
+            "p50": 1622.458805000002,
+            "p95": 2232.434614,
+            "max": 2584.325788000002
+          },
+          "phases": {
+            "lock": {
+              "n": 20,
+              "p50": 63.31563299999107,
+              "p95": 131.57377099999576,
+              "max": 155.9941589999944
+            },
+            "base-under-lock": {
+              "n": 20,
+              "p50": 217.23164199999883,
+              "p95": 428.02014199999394,
+              "max": 835.5429730000033
+            },
+            "locked-put": {
+              "n": 20,
+              "p50": 787.9414129999932,
+              "p95": 1365.6122990000003,
+              "max": 1863.7203150000132
+            },
+            "readback": {
+              "n": 20,
+              "p50": 166.25307000000612,
+              "p95": 556.7392309999996,
+              "max": 576.9144230000093
+            },
+            "unlock": {
+              "n": 20,
+              "p50": 41.73320899999817,
+              "p95": 158.64087400000426,
+              "max": 292.09966500000155
+            }
+          },
+          "readServerMs": {
+            "n": 20,
+            "p50": 206.75135299999965,
+            "p95": 553.2767450000101,
+            "max": 599.5596809999988
+          }
+        },
+        "pooled": {
+          "attempted": 20,
+          "verified": 20,
+          "serverMs": {
+            "n": 20,
+            "p50": 973.1149099999893,
+            "p95": 1484.3374270000058,
+            "max": 1500.457761999991
+          },
+          "wallMs": {
+            "n": 20,
+            "p50": 1258.4286340000108,
+            "p95": 1676.2965000000004,
+            "max": 1686.9518000000025
+          },
+          "phases": {
+            "lock": {
+              "n": 20,
+              "p50": 43.76545399999304,
+              "p95": 70.53725900000427,
+              "max": 75.58780500000285
+            },
+            "base-under-lock": {
+              "n": 20,
+              "p50": 146.81979000000865,
+              "p95": 281.40787400001136,
+              "max": 392.8639589999948
+            },
+            "locked-put": {
+              "n": 20,
+              "p50": 602.9310179999884,
+              "p95": 897.5978349999932,
+              "max": 980.1085410000087
+            },
+            "readback": {
+              "n": 20,
+              "p50": 184.74261100002332,
+              "p95": 263.20980599999893,
+              "max": 363.63573900000483
+            },
+            "unlock": {
+              "n": 20,
+              "p50": 8.89331100002164,
+              "p95": 14.064079999996466,
+              "max": 15.429026999991038
+            }
+          },
+          "readServerMs": {
+            "n": 21,
+            "p50": 147.6674020000064,
+            "p95": 293.0339870000025,
+            "max": 350.500349000009
+          }
+        }
+      },
+      "racePairsVerified": 5,
+      "finalRevision": 45,
+      "apiRequests": 104,
+      "checks": {
+        "unauthenticatedBlocked": true,
+        "replayWithoutNewRevision": true,
+        "staleConflict": true
+      },
+      "errors": [],
+      "profiles": {
+        "fetch": {
+          "meanServerMs": 1473.420910700003,
+          "phaseMeanMs": {
+            "lock": 70.22276539999875,
+            "base-under-lock": 264.00223860000114,
+            "locked-put": 849.1250138000017,
+            "readback": 224.36024534999962,
+            "unlock": 65.51022714999854
+          },
+          "phasePercentOfMeanServer": {
+            "lock": 4.765967748254423,
+            "base-under-lock": 17.917638923325523,
+            "locked-put": 57.62949389639065,
+            "readback": 15.227165823471921,
+            "unlock": 4.446131222535419
+          },
+          "unattributedMeanMs": 0.20042040000339512,
+          "pooledReuseObserved": {
+            "reused": 0,
+            "instrumentedCalls": 0
+          },
+          "failedSaveCalls": 0
+        },
+        "pooled": {
+          "meanServerMs": 1019.2602115499998,
+          "phaseMeanMs": {
+            "lock": 46.54075735000151,
+            "base-under-lock": 169.73787905000137,
+            "locked-put": 611.4358415000003,
+            "readback": 181.15157789999938,
+            "unlock": 10.177327100003458
+          },
+          "phasePercentOfMeanServer": {
+            "lock": 4.5661310843505305,
+            "base-under-lock": 16.653046702556864,
+            "locked-put": 59.988198751541894,
+            "readback": 17.772848959199564,
+            "unlock": 0.9985013625251484
+          },
+          "unattributedMeanMs": 0.21682864999377216,
+          "pooledReuseObserved": {
+            "reused": 100,
+            "instrumentedCalls": 100
+          },
+          "failedSaveCalls": 0
+        }
+      },
+      "pairedRounds": {
+        "n": 20,
+        "pooledFaster": 18,
+        "medianReductionMs": 418.7275979999904
+      }
+    }
+  }
+}
