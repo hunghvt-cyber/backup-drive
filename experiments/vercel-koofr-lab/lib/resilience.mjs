@@ -22,24 +22,24 @@ export async function resilience(input,{makeDav=createDav,wire=nativeTransport,n
    const a=await acquire(clean,'expiry-original-lock',5);must([200,201].includes(a.status)&&validToken(a.token),'INITIAL_LOCK_FAILED');
    report.requestedSeconds=5;report.advertisedTimeout=a.timeout??a.text.match(/<(?:[\w-]+:)?timeout\b[^>]*>\s*(Second-\d+|Infinite)\s*</i)?.[1]??null;
    const busy=await clean.call('expiry-initial-contender','LOCK',lockXml,{Timeout:'Second-5',Depth:'0'});must(busy.status===423,'INITIAL_EXCLUSION_FAILED');
-   const heldAt=now();let b;
+   const heldAt=now();let b,newOwnerAt;
    // Bounded independent observation: never unlock A or infer expiry from a client clock.
    while(now()-heldAt<75000){
-    await wait(2000);const candidate=await acquire(clean,'expiry-contender-poll',5);
-    if([200,201].includes(candidate.status)&&validToken(candidate.token)){b=candidate;break;}
+    await wait(2000);const candidate=await acquire(clean,'expiry-contender-poll',60);
+    if([200,201].includes(candidate.status)&&validToken(candidate.token)){b=candidate;newOwnerAt=now();break;}
     must(candidate.status===423,'EXPIRY_POLL_FAILED');
    }
    report.waitedMs=now()-heldAt;must(b,'EXPIRY_NOT_OBSERVED_WITHIN_BOUND');must(b.token!==a.token,'LOCK_TOKEN_REUSED');active.delete(a.token);
-   report.checks.expiryObservedWithoutUnlock=true;
+   report.checks.expiryObservedWithoutUnlock=true;report.newOwnerAdvertisedTimeout=b.timeout??b.text.match(/<(?:[\w-]+:)?timeout\b[^>]*>\s*(Second-\d+|Infinite)\s*</i)?.[1]??null;
    const before=await clean.call('expiry-read-new-owner','GET');must(before.status===200,'READ_FAILED');const current=parseRecord(before.text);
    const body='# SYNTHETIC expiry winner\nTiếng Việt 日本語 😀\n- [x] recovered ownership\n'+randomUUID();
    const payload=JSON.stringify({...current,revision:current.revision+1,body,bodyHash:hash(body),receipts:[]});
    must(success(await clean.call('expiry-new-owner-write','PUT',payload,{If:'('+b.token+')'})),'NEW_OWNER_WRITE_FAILED');
    const stale=await clean.call('expiry-stale-writer-active-owner','PUT','SYNTHETIC MUST NOT OVERWRITE',{If:'('+a.token+')'});report.expiredWriterWithNewOwnerStatus=stale.status;must([412,423].includes(stale.status),'EXPIRED_TOKEN_OVERWROTE_NEW_OWNER');
    const un=await clean.call('expiry-stale-unlock','UNLOCK',undefined,{'Lock-Token':a.token});report.expiredUnlockStatus=un.status;
-   const checkLock=await acquire(clean,'expiry-check-new-owner-still-held',5);must(checkLock.status===423,'EXPIRED_UNLOCK_REMOVED_NEW_OWNER');
+   const checkLock=await acquire(clean,'expiry-check-new-owner-still-held',60);must(checkLock.status===423,'EXPIRED_UNLOCK_REMOVED_NEW_OWNER');
    const after=await clean.call('expiry-verify-new-owner-content','GET');must(after.status===200&&after.text===payload,'EXPIRED_TOKEN_CHANGED_CONTENT');report.checks.staleTokenFencedWithNewOwner=true;
-   await release(clean,'expiry-new-owner-unlock',b.token);
+   report.newOwnerHeldBeforeUnlockMs=now()-newOwnerAt;await release(clean,'expiry-new-owner-unlock',b.token);
    const staleFree=await clean.call('expiry-stale-writer-no-owner','PUT','SYNTHETIC MUST NOT OVERWRITE',{If:'('+a.token+')'});report.expiredWriterWithoutOwnerStatus=staleFree.status;must([412,423].includes(staleFree.status),'EXPIRED_TOKEN_ACCEPTED_WITHOUT_OWNER');
    const final=await clean.call('expiry-final-read','GET');must(final.status===200&&final.text===payload,'EXPIRED_TOKEN_CHANGED_RELEASED_CONTENT');report.checks.staleTokenFencedWithoutOwner=true;
    const next=await operate({...input,mode:'save',baseRevision:0,opId:randomUUID()},{dav:clean});must(next.code==='CONFLICT'&&!next.committed,'PAUSED_EDITOR_BASE_NOT_RECHECKED');report.checks.pausedEditorConflict=true;

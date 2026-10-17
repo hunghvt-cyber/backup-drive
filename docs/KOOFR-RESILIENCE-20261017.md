@@ -65,3 +65,29 @@ No simulated duration is presented as a real provider lease or benchmark.
 ## Live result
 
 Pending actual isolated Vercel/Koofr run. Do not infer success from simulation.
+
+Protocol reference: https://www.rfc-editor.org/rfc/rfc4918.html sections6.6,7.7,9.10.
+Server chooses the lease duration; a client clock/Timeout request is not proof that
+a lock has been removed. The test therefore observes new lock acquisition and
+actual rejection of the expired token instead of relying on the requested5s.
+
+### Initial live run and narrow recheck
+
+Run39001007775, sourcea410f754, driver9bd70ec7, artifact12089380732.
+Six live controlled TLS fault cases passed; final revision15 after6 fault-case
+commits +9 receipt-eviction setup saves. Old evicted request failed409 without PUT.
+One-note durable backup/restore passed, byte hashes match, restored2307 bytes,
+exactly one restore PUT despite its destroyed response socket.
+
+Expiry was observed without UNLOCK and stale A write returned412 while B was held.
+Expired A UNLOCK409 did not remove B (contender423, content preserved). The test
+then failed UNLOCK_FAILED: B had also been requested for only5s and its validation
+sequence consumed about4.8s; B's UNLOCK and cleanup returned409. This is an overly
+short successor lease in the test, not proof that Koofr violated exclusion. The
+original failed report is retained with its conservative outstanding-lock warning:
+docs/results/vercel-koofr-resilience-initial-20261017.json.
+
+A narrow recheck requests A5s but B60s, confirms B's advertised lease and records
+the interval before its UNLOCK. A slow-call simulation regression was added.
+29 simulated tests pass. Only expiry is rerun; the passing fault/restore cases are
+not repeated. Until recheck evidence exists, expiry remains an incomplete gate.

@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {resilience,makeBackup,readBackup} from '../lib/resilience.mjs';
 import {createDav,hash} from '../lib/storage.mjs';
-function fixture({neverExpire=false,acceptExpired=false,badUnlock=false,noFault=false}={}){
+function fixture({neverExpire=false,acceptExpired=false,badUnlock=false,noFault=false,perCallMs=0}={}){
  let clock=0,counter=0;const files=new Map(),folders=new Set(),locks=new Map();
  function held(path){const l=locks.get(path);if(l&&!neverExpire&&l.until<=clock){locks.delete(path);return undefined;}return l;}
  async function wire(url,options,{fault,onInjected=()=>{}}={}){
+  clock+=perCallMs;
   if(fault==='before-send'&&!noFault){onInjected({phase:fault,requestBodySubmitted:false,socketDestroyed:true});throw Error('NETWORK_OR_TIMEOUT');}
   const path=new URL(url).pathname,method=options.method,lock=held(path);let r={status:500,text:''};
   if(method==='MKCOL'){r.status=folders.has(path)?405:201;folders.add(path);}
@@ -54,4 +55,8 @@ test('durable backup restores byte-exact to new identity after source corruption
 test('backup integrity guards accidental corruption before import',()=>{
  const text=JSON.stringify({schema:1,revision:5,body:'Tiếng Việt 😀\n- [x] x',bodyHash:hash('Tiếng Việt 😀\n- [x] x'),receipts:[]});const backup=makeBackup(text);assert.equal(readBackup(backup),text);
  const bad=JSON.parse(backup);bad.sourceText+='x';assert.throws(()=>readBackup(JSON.stringify(bad)),/INVALID_BACKUP/);assert.throws(()=>readBackup('garbage'),/INVALID_BACKUP/);assert.throws(()=>makeBackup('{}'),/INVALID_STORED_RECORD/);
+});
+
+test('new owner has a longer lease so slow validation does not invalidate the expiry test',async()=>{
+ const f=fixture({perCallMs:1000}),r=await resilience(input('expiry'),f);assert.equal(r.passed,true,JSON.stringify(r.errors));assert.equal(r.newOwnerAdvertisedTimeout,'Second-60');assert.equal(r.newOwnerHeldBeforeUnlockMs>=5000,true);
 });
