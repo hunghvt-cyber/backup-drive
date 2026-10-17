@@ -55,7 +55,7 @@ export async function storeFixture(input,{makeStore=x=>new NoteStore(x,{lease:x.
    const created=await store.get(noteId(101));await store.remove(created.id,created.revision);checks.folderWorkspaceCreateEditIsolation=true;checks.movedNoteLosesFolderAccess=true;checks.sharedFolderDeleteGuard=true;checks.folderRevokeAndRenew=true;
   }else if(stage==='concurrency'){
    const original=await store.get(noteId(5)),ops=[randomUUID(),randomUUID()];
-   const rs=await Promise.allSettled(ops.map((op,i)=>store.save(5,{text:'Concurrent '+i},original.revision,op)));
+   const rs=await Promise.allSettled(ops.map((op,i)=>makeStore(input).save(5,{text:'Concurrent '+i},original.revision,op)));
    const winners=rs.map((r,i)=>({r,i})).filter(x=>x.r.status==='fulfilled');must(winners.length===1,'CONCURRENT_DOUBLE_COMMIT');const lose=1-winners[0].i;must([409,423].includes(rs[lose].reason.status),'UNEXPECTED_CONCURRENT_FAILURE');await denied(()=>store.save(5,{text:'Concurrent '+lose},original.revision,ops[lose]),409);
    checks.sameBaseOneWinner=true;
   }else if(stage==='revoke-expiry'){

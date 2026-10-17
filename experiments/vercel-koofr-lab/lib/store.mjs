@@ -2,8 +2,9 @@
  * Every mutation uses the inherited collection token, including catalog publication.
  * No generic HTTP owner/share endpoint is exposed by the fixture harness.
  */
+import https from 'node:https';
 import {randomBytes,randomUUID,timingSafeEqual} from 'node:crypto';
-import {createDav,hash,lockXml,validToken} from './storage.mjs';
+import {createDav,nativeTransport,hash,lockXml,validToken} from './storage.mjs';
 export class StoreError extends Error{constructor(status,code){super(code);this.status=status;}}
 const check=(v,status,code)=>{if(!v)throw new StoreError(status,code);};
 const clone=x=>JSON.parse(JSON.stringify(x));
@@ -30,10 +31,10 @@ function can(cat,actor,id,write=false){if(actor?.owner)return null;const s=capab
 export function parseCatalog(text){let j;try{j=JSON.parse(text);}catch{throw new StoreError(503,'INVALID_CATALOG');}check(j?.schema===1&&typeof j.epoch==='string'&&Number.isSafeInteger(j.version)&&j.entries&&j.folders&&j.shares&&Array.isArray(j.receipts),503,'INVALID_CATALOG');return j;}
 export function parseNote(text){let j;try{j=JSON.parse(text);}catch{throw new StoreError(503,'INVALID_NOTE_RECORD');}check(j?.schema===2&&j.value&&hash(JSON.stringify(j.value))===j.valueHash&&Array.isArray(j.value.history),503,'INVALID_NOTE_RECORD');noteInput(j.value);return j;}
 function summary(n){return {title:n.title,text:n.text.slice(0,100),pinned:n.pinned,updatedAt:n.updatedAt};}
-export async function pool(values,fn,limit=2){let next=0;const out=[];await Promise.all(Array.from({length:Math.min(limit,values.length)},async()=>{while(next<values.length){const i=next++;out[i]=await fn(values[i],i);}}));return out;}
+export async function pool(values,fn,limit=2){let next=0;const out=[];const results=await Promise.allSettled(Array.from({length:Math.min(limit,values.length)},async()=>{while(next<values.length){const i=next++;out[i]=await fn(values[i],i);}}));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;return out;}
 export class NoteStore{
- constructor(input,{makeDav=createDav,wire,lease=60,beforePublish,now=()=>new Date().toISOString()}={}){this.input={...input,transport:'pooled'};this.makeDav=makeDav;this.wire=wire;this.lease=lease;this.beforePublish=beforePublish;this.now=now;this.clients=new Map();this.metrics=[];}
- dav(file='catalog.json'){if(!this.clients.has(file))this.clients.set(file,this.makeDav(this.input,{file,...(this.wire?{nativeRequest:this.wire}:{})}));return this.clients.get(file);}
+ constructor(input,{makeDav=createDav,wire,lease=60,beforePublish,now=()=>new Date().toISOString()}={}){this.input={...input,transport:'pooled'};this.makeDav=makeDav;this.wire=wire;this.agent=new https.Agent({keepAlive:true,maxSockets:1,maxFreeSockets:1,timeout:15000});this.transport=(url,opts,ctx)=>(this.wire??nativeTransport)(url,opts,{...ctx,connectionAgent:this.agent});this.lease=lease;this.beforePublish=beforePublish;this.now=now;this.clients=new Map();this.metrics=[];}
+ dav(file='catalog.json'){if(!this.clients.has(file))this.clients.set(file,this.makeDav(this.input,{file,nativeRequest:this.transport}));return this.clients.get(file);}
  get calls(){return [...this.clients.values()].flatMap(d=>d.calls);}
  async readCatalog(){const r=await this.dav().call('catalog-read','GET');check(r.status===200,503,'CATALOG_READ_FAILED');return parseCatalog(r.text);}
  async readRecord(e){const r=await this.dav(e.head).call('immutable-note-read','GET');check(r.status===200&&hash(r.text)===e.headHash,503,'NOTE_HASH_MISMATCH');const n=parseNote(r.text);check(n.value.id===e.id,503,'NOTE_ID_MISMATCH');return n.value;}

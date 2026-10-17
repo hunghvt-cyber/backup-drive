@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {NoteStore,noteId,fixtureNote} from '../lib/store.mjs';
+import {NoteStore,noteId,fixtureNote,pool} from '../lib/store.mjs';
 import {storeFixture} from '../lib/store-fixtures.mjs';
 import {createDav} from '../lib/storage.mjs';
 function backend(){
@@ -19,7 +19,7 @@ function backend(){
   return {...r,timing:{ttfbMs:0,reusedSocket:true}};
  }
  const makeDav=(input,opts={})=>createDav({...input,transport:'pooled'},{nativeRequest:wire,...opts});
- const makeStore=x=>new NoteStore(x,{makeDav,lease:x.testLease??60,beforePublish:x.testBeforePublish,wire:x.testWire,now:x.testNow});
+ const makeStore=x=>new NoteStore(x,{makeDav,lease:x.testLease??60,beforePublish:x.testBeforePublish,wire:x.testWire??wire,now:x.testNow});
  return {makeStore,wire,makeDav,files,requests,wait:async ms=>{clock+=ms;},locks};
 }
 const input=()=>({mode:'store100',transport:'pooled',user:'fake',password:'synthetic-secret',namespace:'Homepage-Notes-Vercel-Probe-123-'+randomUUID()});
@@ -51,3 +51,11 @@ test('100 active Notes +4 tombstones restore with folder/history/checklist data;
  for(let chunk=0;chunk<11;chunk++)await run(b,target,'restore-chunk',{chunk});const verified=await run(b,target,'restore-verify',{probe:exported.privateProbe});assert.equal(verified.details.active,100);assert.equal(verified.details.byteExact,104);assert.equal(b.locks.size,0);
 });
 test('record filenames are constrained to synthetic slots and immutable op UUIDs',()=>{const i=input();for(const file of ['../../notes.json','note-999-'+randomUUID()+'.json','note-001-../../secret.json'])assert.throws(()=>createDav(i,{file}));});
+
+test('failed batch waits for in-flight workers before collection unlock cleanup',async()=>{
+ let completed=false;await assert.rejects(pool([0,1],async n=>{if(n===0)throw Error('fixture failure');await new Promise(r=>setTimeout(r,10));completed=true;}));assert.equal(completed,true);
+});
+
+test('each store session binds all inherited-lock requests to its own single-socket agent',async()=>{
+ const b=backend(),i=input(),seen=new Set(),s=new NoteStore(i,{makeDav:b.makeDav,wire:(url,opts,ctx)=>{seen.add(ctx.connectionAgent);assert.equal(ctx.connectionAgent.maxSockets,1);return b.wire(url,opts,ctx);}});await s.init();await s.seedBatch(0,2);assert.equal(seen.size,1);assert.notEqual(s.agent,new NoteStore(i).agent);
+});

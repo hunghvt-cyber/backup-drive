@@ -14,9 +14,9 @@ export function validateInput(input,runId){
  must(['seed','read','save','expiry','faults','restore','store100'].includes(mode)&&['fetch','pooled'].includes(transport),'INVALID_MODE');
  if(mode==='save')must(/^[a-f0-9-]{36}$/.test(opId)&&Number.isSafeInteger(baseRevision)&&baseRevision>=0,'INVALID_OPERATION');
 }
-export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponseBytes=32000}={}){
+export function nativeTransport(url,options,{fault,onInjected=()=>{},maxResponseBytes=32000,connectionAgent}={}){
  return new Promise((resolve,reject)=>{
-  const start=performance.now(),timing={},req=https.request(url,{method:options.method,headers:options.headers,agent,signal:AbortSignal.timeout(12000)},res=>{
+  const start=performance.now(),timing={},req=https.request(url,{method:options.method,headers:options.headers,agent:connectionAgent??agent,signal:AbortSignal.timeout(12000)},res=>{
    timing.ttfbMs=performance.now()-start;let text='',bytes=0;
    res.setEncoding('utf8');res.on('data',chunk=>{bytes+=Buffer.byteLength(chunk);if(bytes>maxResponseBytes)res.destroy(Error('RESPONSE_TOO_LARGE'));else text+=chunk;});
    res.on('error',()=>reject(Error('NETWORK_OR_TIMEOUT')));res.on('end',()=>resolve({status:res.statusCode,text,token:res.headers['lock-token'],timeout:res.headers.timeout,timing:{...timing,reusedSocket:req.reusedSocket}}));
