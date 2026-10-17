@@ -2,7 +2,7 @@ name: Homepage Koofr Vercel isolated benchmark
 on:
   push:
     branches: [experiment/homepage-koofr-webdav-20261017]
-    paths: ['experiments/vercel-koofr-lab/**', 'scripts/koofr_vercel_bench.mjs', 'scripts/koofr_vercel_resilience.mjs', 'scripts/koofr_collection_preflight.mjs', 'scripts/koofr_store100.mjs', '.github/workflows/koofr-vercel-bench.yml']
+    paths: ['experiments/vercel-koofr-lab/**', 'scripts/koofr_vercel_bench.mjs', 'scripts/koofr_vercel_resilience.mjs', 'scripts/koofr_collection_preflight.mjs', 'scripts/koofr_store100.mjs', 'scripts/koofr_store_reliability.mjs', '.github/workflows/koofr-vercel-bench.yml']
 permissions:
   contents: read
 jobs:
@@ -18,6 +18,7 @@ jobs:
       - run: node --check scripts/koofr_vercel_bench.mjs
       - run: node --check scripts/koofr_vercel_resilience.mjs
       - run: node --check scripts/koofr_store100.mjs
+      - run: node --check scripts/koofr_store_reliability.mjs
   live:
     if: contains(github.event.head_commit.message, '[vercel-koofr-bench]')
     needs: simulation
@@ -141,5 +142,36 @@ jobs:
         with:
           name: homepage-koofr-store100
           path: koofr-store100.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  live-store-reliability:
+    if: contains(github.event.head_commit.message, '[koofr-store-reliability]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-store-reliability
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Full-store socket faults and independent preview invocation races
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_store_reliability.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-store-reliability
+          path: koofr-store-reliability.local.json
           if-no-files-found: error
           retention-days: 7
