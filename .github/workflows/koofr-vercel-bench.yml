@@ -17,6 +17,7 @@ jobs:
       - run: node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs
       - run: node --check scripts/koofr_vercel_bench.mjs
       - run: node --check scripts/koofr_vercel_resilience.mjs
+      - run: node --check scripts/koofr_store100.mjs
   live:
     if: contains(github.event.head_commit.message, '[vercel-koofr-bench]')
     needs: simulation
@@ -109,4 +110,35 @@ jobs:
         with:
           name: homepage-koofr-collection-preflight
           path: koofr-collection-preflight.local.json
+          retention-days: 7
+
+  live-store100:
+    if: contains(github.event.head_commit.message, '[koofr-store100]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-store100
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: 100 synthetic Notes, folder/share isolation and full restore through Vercel
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_store100.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-store100
+          path: koofr-store100.local.json
+          if-no-files-found: error
           retention-days: 7
