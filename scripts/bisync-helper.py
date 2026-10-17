@@ -529,7 +529,9 @@ def build_filter(
         exist_ok=True,
     )
 
-    lines = []
+    # Exclude the camera archive at the sync root on both remotes.
+    # Exclusion does not delete files already stored on Koofr.
+    lines = ["- /Tapo-Archive/**", "- /Tapo-Archive/"]
 
     for path in sorted(paths):
         lines.append(
