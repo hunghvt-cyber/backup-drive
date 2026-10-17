@@ -28,6 +28,13 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 
 [**Xem báo cáo và tải log của lượt chạy 14/10/2026**](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38482597215/artifacts/11861574820)
 
+## Thư mục loại trừ
+
+- `Tapo-Archive/` ở thư mục gốc Google Drive và Koofr được loại trừ khỏi bisync, gồm toàn bộ tệp và thư mục con.
+- Bộ lọc được tạo trong `scripts/bisync-helper.py`; không tự xóa dữ liệu Tapo đã có trên Koofr.
+- **Thay đổi bộ lọc làm thay đổi checksum của trạng thái bisync.** Lần chạy đầu sau thay đổi có thể yêu cầu chạy `--resync` có kiểm soát để tái tạo baseline. Không bật `reset` hoặc xóa dữ liệu tự động.
+- Muốn thu hồi dung lượng, cần kiểm tra và xóa riêng bản sao `GoogleBackup/Tapo-Archive` trên Koofr sau khi xác nhận dữ liệu gốc trên Google Drive còn đầy đủ.
+
 ## Lịch chạy và an toàn
 
 - Đồng bộ hằng ngày lúc **02:00 giờ Việt Nam** theo [workflow](.github/workflows/bisync.yml).
