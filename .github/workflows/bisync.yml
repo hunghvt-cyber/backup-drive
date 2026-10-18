@@ -516,20 +516,34 @@ jobs:
           exit 1
 
       # Publish only a small sanitized report; failure cannot change backup outcome.
-      - name: Publish latest backup metrics to Vercel Blob
+      - name: Publish latest backup metrics (selected report backend)
         if: always() && steps.bisync.outcome != 'skipped'
         continue-on-error: true
         shell: bash
         env:
           BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          REPORT_BACKEND: ${{ vars.REPORT_BACKEND || 'blob' }}
+          REPORT_GAS_URL: ${{ vars.REPORT_GAS_URL }}
+          REPORT_GAS_KEY: ${{ secrets.REPORT_GAS_KEY }}
           RCLONE_RC: ${{ steps.bisync.outputs.rclone_exit_code }}
           RETRY_RC: ${{ steps.retry.outputs.retry_exit_code }}
           NEW_IGNORED: ${{ steps.parse_errors.outputs.new_ignored }}
         run: |
-          if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then
-            echo "::notice::Set BLOB_READ_WRITE_TOKEN to publish backup report."
-            exit 0
-          fi
           python3 scripts/backup-summary.py
-          python3 -m pip install --disable-pip-version-check 'vercel==0.11.6'
-          python3 scripts/publish_blob_report.py backup-summary.json gdrive-backup-latest.json
+          case "$REPORT_BACKEND" in
+            gas-drive)
+              python3 scripts/publish_gas_report.py backup-summary.json
+              ;;
+            blob)
+              if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then
+                echo "::notice::BLOB_READ_WRITE_TOKEN missing; report publishing disabled."
+                exit 0
+              fi
+              python3 -m pip install --disable-pip-version-check 'vercel==0.11.6'
+              python3 scripts/publish_blob_report.py backup-summary.json gdrive-backup-latest.json
+              ;;
+            *)
+              echo "::error::Unsupported report backend."
+              exit 1
+              ;;
+          esac
