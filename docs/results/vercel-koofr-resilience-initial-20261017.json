@@ -1,0 +1,1740 @@
+{
+  "kind": "VERCEL_KOOFR_LIVE_CONTROLLED_RESILIENCE",
+  "at": "2026-10-17T04:01:52.486Z",
+  "deployedCode": "a410f75415a2328a67c9f3b5e312ef047992acff",
+  "deploymentId": "dpl_9UkfyFgZKxjc22vpfn3rphSssw3T",
+  "endpoint": "https://homepage-koofr-1kn78ozsn-hunghvt.vercel.app/api/bench",
+  "passed": false,
+  "completed": true,
+  "cases": [
+    {
+      "mode": "expiry",
+      "namespace": "Homepage-Notes-Vercel-Probe-39001007775-1e85a400-cb73-44bb-906a-55ea272dce35",
+      "httpStatus": 503,
+      "wallMs": 14200.423716,
+      "status": 503,
+      "code": "RESILIENCE_GATE_FAILED",
+      "kind": "KOOFR_VERCEL_CONTROLLED_RESILIENCE",
+      "passed": false,
+      "checks": {
+        "isolatedSeed": true,
+        "expiryObservedWithoutUnlock": true,
+        "staleTokenFencedWithNewOwner": true
+      },
+      "faults": [],
+      "errors": [
+        {
+          "code": "UNLOCK_FAILED"
+        }
+      ],
+      "requestedSeconds": 5,
+      "advertisedTimeout": "Second-5",
+      "waitedMs": 4230.208814000005,
+      "expiredWriterWithNewOwnerStatus": 412,
+      "expiredUnlockStatus": 409,
+      "cleanup": [
+        {
+          "status": 409
+        }
+      ],
+      "possibleOutstandingLock": true,
+      "calls": [
+        {
+          "label": "new-namespace",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "dnsMs": 22.80221399999573,
+            "tcpMs": 30.64026699999522,
+            "tlsMs": 40.260669999996026,
+            "ttfbMs": 902.7978169999988,
+            "reusedSocket": false
+          },
+          "ms": 905.1943580000006
+        },
+        {
+          "label": "seed-note",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1937.3528519999963,
+            "reusedSocket": true
+          },
+          "ms": 1938.1396339999992
+        },
+        {
+          "label": "seed-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 1488.0726489999943,
+            "reusedSocket": true
+          },
+          "ms": 1489.025161000005
+        },
+        {
+          "label": "expiry-original-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 249.34421100000327,
+            "reusedSocket": true
+          },
+          "ms": 250.26409400000557
+        },
+        {
+          "label": "expiry-initial-contender",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 22.756656999998086,
+            "reusedSocket": true
+          },
+          "ms": 23.676007000001846
+        },
+        {
+          "label": "expiry-contender-poll",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 60.633922000000894,
+            "reusedSocket": true
+          },
+          "ms": 61.42609299999458
+        },
+        {
+          "label": "expiry-contender-poll",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 166.93373399999837,
+            "reusedSocket": true
+          },
+          "ms": 167.74509899999975
+        },
+        {
+          "label": "expiry-read-new-owner",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 896.5567749999973,
+            "reusedSocket": true
+          },
+          "ms": 897.4391509999987
+        },
+        {
+          "label": "expiry-new-owner-write",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 2165.445059000005,
+            "reusedSocket": true
+          },
+          "ms": 2166.223687999998
+        },
+        {
+          "label": "expiry-stale-writer-active-owner",
+          "method": "PUT",
+          "status": 412,
+          "timing": {
+            "ttfbMs": 976.2427639999951,
+            "reusedSocket": true
+          },
+          "ms": 976.9530739999973
+        },
+        {
+          "label": "expiry-stale-unlock",
+          "method": "UNLOCK",
+          "status": 409,
+          "timing": {
+            "ttfbMs": 13.04616199999873,
+            "reusedSocket": true
+          },
+          "ms": 13.839877999998862
+        },
+        {
+          "label": "expiry-check-new-owner-still-held",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 18.216176999994786,
+            "reusedSocket": true
+          },
+          "ms": 18.945660000004864
+        },
+        {
+          "label": "expiry-verify-new-owner-content",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 676.4824050000025,
+            "reusedSocket": true
+          },
+          "ms": 676.9867219999942
+        },
+        {
+          "label": "expiry-new-owner-unlock",
+          "method": "UNLOCK",
+          "status": 409,
+          "timing": {
+            "ttfbMs": 74.91911499999696,
+            "reusedSocket": true
+          },
+          "ms": 75.46639800000412
+        },
+        {
+          "label": "resilience-cleanup-own-lock",
+          "method": "UNLOCK",
+          "status": 409,
+          "timing": {
+            "ttfbMs": 34.997778999997536,
+            "reusedSocket": true
+          },
+          "ms": 35.71729400000186
+        }
+      ],
+      "ms": 13701.333752999999,
+      "requestId": "91d7be33-4320-4a2a-abad-5ed673c5406a",
+      "region": "fra1",
+      "authAndParseMs": 311.5027520000003
+    },
+    {
+      "mode": "faults",
+      "namespace": "Homepage-Notes-Vercel-Probe-39001007775-3c14ac46-5556-4092-99da-49007b3a9ceb",
+      "httpStatus": 200,
+      "wallMs": 55584.349385,
+      "status": 200,
+      "code": "RESILIENCE_VERIFIED",
+      "kind": "KOOFR_VERCEL_CONTROLLED_RESILIENCE",
+      "passed": true,
+      "checks": {
+        "isolatedSeed": true,
+        "evictedReceiptFailsClosed": true,
+        "noDuplicateCommit": true,
+        "ambiguousNotFalselyConfirmed": true
+      },
+      "faults": [
+        {
+          "name": "before-put",
+          "initial": {
+            "status": 503,
+            "code": "WRITE_OUTCOME_UNKNOWN",
+            "committed": false,
+            "uncertain": true,
+            "cleanupWarning": null
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 224.39886000000115,
+                "reusedSocket": true
+              },
+              "ms": 225.13923200000136
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 485.55556799999613,
+                "reusedSocket": true
+              },
+              "ms": 486.21996599998965
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 0.9782189999968978
+            },
+            {
+              "label": "reconcile-ambiguous-put",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "dnsMs": 11.07302699999127,
+                "tcpMs": 17.75121200000285,
+                "tlsMs": 24.374448999995366,
+                "ttfbMs": 514.4566720000003,
+                "reusedSocket": false
+              },
+              "ms": 515.2521489999926
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "status": 204,
+              "timing": {
+                "ttfbMs": 17.372358000007807,
+                "reusedSocket": true
+              },
+              "ms": 17.954326999999466
+            }
+          ],
+          "injections": [
+            {
+              "label": "locked-put",
+              "phase": "before-send",
+              "requestBodySubmitted": false,
+              "socketDestroyed": true
+            }
+          ],
+          "retry": {
+            "code": "VERIFIED",
+            "revision": 1
+          }
+        },
+        {
+          "name": "lost-put-reply",
+          "initial": {
+            "status": 200,
+            "code": "RECONCILED",
+            "committed": true,
+            "uncertain": false,
+            "cleanupWarning": null
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 161.04360400000587,
+                "reusedSocket": true
+              },
+              "ms": 161.71330899999884
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 542.2837600000057,
+                "reusedSocket": true
+              },
+              "ms": 542.9834220000048
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 1560.7458800000022
+            },
+            {
+              "label": "reconcile-ambiguous-put",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 918.4249850000051,
+                "reusedSocket": true
+              },
+              "ms": 918.9973670000036
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "status": 204,
+              "timing": {
+                "ttfbMs": 28.777687000008882,
+                "reusedSocket": true
+              },
+              "ms": 29.469700000001467
+            }
+          ],
+          "injections": [
+            {
+              "label": "locked-put",
+              "phase": "after-response-headers",
+              "observedStatus": 201,
+              "socketDestroyed": true
+            }
+          ],
+          "retry": {
+            "code": "REPLAY",
+            "revision": 2
+          }
+        },
+        {
+          "name": "lost-readback",
+          "initial": {
+            "status": 503,
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "uncertain": true,
+            "cleanupWarning": null
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 243.05691800000204,
+                "reusedSocket": true
+              },
+              "ms": 243.64987799999653
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 483.96322900000087,
+                "reusedSocket": true
+              },
+              "ms": 484.6342169999989
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "status": 201,
+              "timing": {
+                "ttfbMs": 1654.8217669999867,
+                "reusedSocket": true
+              },
+              "ms": 1655.3773849999998
+            },
+            {
+              "label": "readback",
+              "method": "GET",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 364.79140500001085
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "status": 204,
+              "timing": {
+                "dnsMs": 1.7410340000060387,
+                "tcpMs": 10.564988000012818,
+                "tlsMs": 19.23297100000491,
+                "ttfbMs": 403.26827400000184,
+                "reusedSocket": false
+              },
+              "ms": 403.7484400000103
+            }
+          ],
+          "injections": [
+            {
+              "label": "readback",
+              "phase": "after-response-headers",
+              "observedStatus": 200,
+              "socketDestroyed": true
+            }
+          ],
+          "retry": {
+            "code": "REPLAY",
+            "revision": 3
+          }
+        },
+        {
+          "name": "lost-put-and-reconciliation",
+          "initial": {
+            "status": 503,
+            "code": "NETWORK_OR_TIMEOUT",
+            "committed": false,
+            "uncertain": true,
+            "cleanupWarning": null
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 336.43656100000953,
+                "reusedSocket": true
+              },
+              "ms": 336.9290100000071
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 255.7295759999979,
+                "reusedSocket": true
+              },
+              "ms": 256.2379970000038
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 993.3348110000079
+            },
+            {
+              "label": "reconcile-ambiguous-put",
+              "method": "GET",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 259.63238999999885
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "status": 204,
+              "timing": {
+                "dnsMs": 2.306603000004543,
+                "tcpMs": 8.818731999999727,
+                "tlsMs": 20.316898000004585,
+                "ttfbMs": 508.66070700000273,
+                "reusedSocket": false
+              },
+              "ms": 509.38885299999674
+            }
+          ],
+          "injections": [
+            {
+              "label": "locked-put",
+              "phase": "after-response-headers",
+              "observedStatus": 201,
+              "socketDestroyed": true
+            },
+            {
+              "label": "reconcile-ambiguous-put",
+              "phase": "after-response-headers",
+              "observedStatus": 200,
+              "socketDestroyed": true
+            }
+          ],
+          "retry": {
+            "code": "REPLAY",
+            "revision": 4
+          }
+        },
+        {
+          "name": "lost-unlock-request",
+          "initial": {
+            "status": 200,
+            "code": "VERIFIED",
+            "committed": true,
+            "uncertain": false,
+            "cleanupWarning": "LOCK_RELEASE_UNVERIFIED"
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 215.43321200000355,
+                "reusedSocket": true
+              },
+              "ms": 216.1521630000061
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 857.2572910000017,
+                "reusedSocket": true
+              },
+              "ms": 857.937402999989
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "status": 201,
+              "timing": {
+                "ttfbMs": 2316.3850789999997,
+                "reusedSocket": true
+              },
+              "ms": 2316.8739579999965
+            },
+            {
+              "label": "readback",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 676.2872050000005,
+                "reusedSocket": true
+              },
+              "ms": 676.7928050000046
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 0.3882969999976922
+            }
+          ],
+          "injections": [
+            {
+              "label": "unlock",
+              "phase": "before-send",
+              "requestBodySubmitted": false,
+              "socketDestroyed": true
+            }
+          ],
+          "lockBusyObserved": true,
+          "retry": {
+            "code": "REPLAY",
+            "revision": 5
+          }
+        },
+        {
+          "name": "lost-unlock-reply",
+          "initial": {
+            "status": 200,
+            "code": "VERIFIED",
+            "committed": true,
+            "uncertain": false,
+            "cleanupWarning": "LOCK_RELEASE_UNVERIFIED"
+          },
+          "calls": [
+            {
+              "label": "lock",
+              "method": "LOCK",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 28.31407599999511,
+                "reusedSocket": true
+              },
+              "ms": 28.792757000002894
+            },
+            {
+              "label": "base-under-lock",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 94.91060999999172,
+                "reusedSocket": true
+              },
+              "ms": 95.71730599999137
+            },
+            {
+              "label": "locked-put",
+              "method": "PUT",
+              "status": 201,
+              "timing": {
+                "ttfbMs": 448.6092959999951,
+                "reusedSocket": true
+              },
+              "ms": 449.2618819999916
+            },
+            {
+              "label": "readback",
+              "method": "GET",
+              "status": 200,
+              "timing": {
+                "ttfbMs": 101.18891000001167,
+                "reusedSocket": true
+              },
+              "ms": 101.84865200000058
+            },
+            {
+              "label": "unlock",
+              "method": "UNLOCK",
+              "error": "NETWORK_OR_TIMEOUT",
+              "ms": 8.767259000000195
+            }
+          ],
+          "injections": [
+            {
+              "label": "unlock",
+              "phase": "after-response-headers",
+              "observedStatus": 204,
+              "socketDestroyed": true
+            }
+          ],
+          "retry": {
+            "code": "REPLAY",
+            "revision": 6
+          }
+        }
+      ],
+      "errors": [],
+      "finalRevision": 15,
+      "cleanup": [],
+      "possibleOutstandingLock": false,
+      "calls": [
+        {
+          "label": "new-namespace",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 389.4048909999983,
+            "reusedSocket": true
+          },
+          "ms": 390.18348599999445
+        },
+        {
+          "label": "seed-note",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1358.0826690000104,
+            "reusedSocket": true
+          },
+          "ms": 1359.605497000004
+        },
+        {
+          "label": "seed-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 604.6108910000039,
+            "reusedSocket": true
+          },
+          "ms": 605.1589340000064
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 410.1597690000053,
+            "reusedSocket": true
+          },
+          "ms": 410.6662859999924
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 161.23362400000042,
+            "reusedSocket": true
+          },
+          "ms": 161.73611399999936
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 493.49286199999915,
+            "reusedSocket": true
+          },
+          "ms": 493.98007599999255
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1917.6203939999978,
+            "reusedSocket": true
+          },
+          "ms": 1918.1383100000094
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 493.19624599999224,
+            "reusedSocket": true
+          },
+          "ms": 493.700324999998
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 157.69139300000097,
+            "reusedSocket": true
+          },
+          "ms": 158.46425800000725
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 485.7707539999974,
+            "reusedSocket": true
+          },
+          "ms": 486.2585679999902
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 407.88644800000475,
+            "reusedSocket": true
+          },
+          "ms": 408.6082650000026
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 417.21985599999607,
+            "reusedSocket": true
+          },
+          "ms": 417.7123900000006
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 149.07166299999517,
+            "reusedSocket": true
+          },
+          "ms": 149.5426460000017
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 235.40671799999836,
+            "reusedSocket": true
+          },
+          "ms": 235.90747399999236
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 159.6504980000027,
+            "reusedSocket": true
+          },
+          "ms": 160.15506600000663
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 795.8629010000004,
+            "reusedSocket": true
+          },
+          "ms": 796.3401350000058
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 18.066672000000835,
+            "reusedSocket": true
+          },
+          "ms": 18.67043399999966
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 557.809672000003,
+            "reusedSocket": true
+          },
+          "ms": 558.5003690000012
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 214.91485300000932,
+            "reusedSocket": true
+          },
+          "ms": 215.58578700000362
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 581.9054179999948,
+            "reusedSocket": true
+          },
+          "ms": 582.4022230000119
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 18.4693280000065,
+            "reusedSocket": true
+          },
+          "ms": 19.009387999991304
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 423,
+          "timing": {
+            "dnsMs": 1.6939339999953518,
+            "tcpMs": 7.667226999998093,
+            "tlsMs": 15.15378100000089,
+            "ttfbMs": 117.81677399999171,
+            "reusedSocket": false
+          },
+          "ms": 118.6682879999862
+        },
+        {
+          "label": "fault-cleanup-known-own-token",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 7.945026000001235,
+            "reusedSocket": true
+          },
+          "ms": 8.373038999998244
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 84.76980500000354,
+            "reusedSocket": true
+          },
+          "ms": 85.27200100000482
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 24.931106000003638,
+            "reusedSocket": true
+          },
+          "ms": 25.628695999999763
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 103.43869600001199,
+            "reusedSocket": true
+          },
+          "ms": 104.1660189999966
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 8.502892000004067,
+            "reusedSocket": true
+          },
+          "ms": 9.119552999996813
+        },
+        {
+          "label": "read-note",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 678.2360119999939,
+            "reusedSocket": true
+          },
+          "ms": 678.9311670000025
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 177.94388700000127,
+            "reusedSocket": true
+          },
+          "ms": 178.60768200000166
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 452.0256709999958,
+            "reusedSocket": true
+          },
+          "ms": 452.6903600000078
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 16.565790000007837,
+            "reusedSocket": true
+          },
+          "ms": 17.193513000005623
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 168.82637799999793,
+            "reusedSocket": true
+          },
+          "ms": 169.3053760000039
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 393.95486600000004,
+            "reusedSocket": true
+          },
+          "ms": 394.6233860000066
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1806.639010999992,
+            "reusedSocket": true
+          },
+          "ms": 1807.132322000005
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 483.61190199998964,
+            "reusedSocket": true
+          },
+          "ms": 484.16787599999225
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 10.87997200000973,
+            "reusedSocket": true
+          },
+          "ms": 11.35590000000957
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 142.46753100000205,
+            "reusedSocket": true
+          },
+          "ms": 143.08321899999282
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 366.2549710000021,
+            "reusedSocket": true
+          },
+          "ms": 366.889479999998
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1739.0186269999977,
+            "reusedSocket": true
+          },
+          "ms": 1739.4692769999965
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 524.3311109999922,
+            "reusedSocket": true
+          },
+          "ms": 524.8606339999969
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 47.41811600000074,
+            "reusedSocket": true
+          },
+          "ms": 47.95276300000842
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 175.29732199999853,
+            "reusedSocket": true
+          },
+          "ms": 175.7927570000029
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 1454.3950639999966,
+            "reusedSocket": true
+          },
+          "ms": 1454.8457689999923
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 2564.4963470000075,
+            "reusedSocket": true
+          },
+          "ms": 2564.930794
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 406.97844999999506,
+            "reusedSocket": true
+          },
+          "ms": 407.4566649999906
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 17.15915799999493,
+            "reusedSocket": true
+          },
+          "ms": 17.763979000010295
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 168.81948000000557,
+            "reusedSocket": true
+          },
+          "ms": 169.32554299999902
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 338.428476999994,
+            "reusedSocket": true
+          },
+          "ms": 338.8880119999958
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 2368.610784999997,
+            "reusedSocket": true
+          },
+          "ms": 2369.0730380000023
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 479.6578909999953,
+            "reusedSocket": true
+          },
+          "ms": 480.0989220000047
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 21.96525200000906,
+            "reusedSocket": true
+          },
+          "ms": 22.385752000001958
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 72.69643999999971,
+            "reusedSocket": true
+          },
+          "ms": 73.32061899999098
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 282.998682999998,
+            "reusedSocket": true
+          },
+          "ms": 283.49268799999845
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1491.3526559999882,
+            "reusedSocket": true
+          },
+          "ms": 1491.8004980000114
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 1531.9919139999984,
+            "reusedSocket": true
+          },
+          "ms": 1532.457727000001
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 15.489337999999407,
+            "reusedSocket": true
+          },
+          "ms": 15.908802999998443
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 105.11690799999633,
+            "reusedSocket": true
+          },
+          "ms": 105.74709699999948
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 419.8615040000004,
+            "reusedSocket": true
+          },
+          "ms": 420.526583999992
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1833.0913199999923,
+            "reusedSocket": true
+          },
+          "ms": 1833.5897689999983
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 514.5436889999983,
+            "reusedSocket": true
+          },
+          "ms": 514.9927840000018
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 24.95555099999183,
+            "reusedSocket": true
+          },
+          "ms": 25.383224000004702
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 156.32217499999388,
+            "reusedSocket": true
+          },
+          "ms": 156.85038099999656
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 742.0848430000042,
+            "reusedSocket": true
+          },
+          "ms": 742.5595350000076
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1493.4345089999988,
+            "reusedSocket": true
+          },
+          "ms": 1493.8680529999983
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 337.3208980000054,
+            "reusedSocket": true
+          },
+          "ms": 337.77793799999927
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 16.464975000009872,
+            "reusedSocket": true
+          },
+          "ms": 16.889314999993076
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 128.24633399999584,
+            "reusedSocket": true
+          },
+          "ms": 128.69508000000496
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 319.20855799999845,
+            "reusedSocket": true
+          },
+          "ms": 319.70090199999686
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1701.5985340000043,
+            "reusedSocket": true
+          },
+          "ms": 1702.082733000003
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 717.1577609999949,
+            "reusedSocket": true
+          },
+          "ms": 717.6542950000003
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 20.066718000001856,
+            "reusedSocket": true
+          },
+          "ms": 20.66026600000623
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 119.45050099999935,
+            "reusedSocket": true
+          },
+          "ms": 119.89101900000242
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 438.78246699999727,
+            "reusedSocket": true
+          },
+          "ms": 439.48081100000127
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1797.4939579999918,
+            "reusedSocket": true
+          },
+          "ms": 1797.9941790000012
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 291.3555190000043,
+            "reusedSocket": true
+          },
+          "ms": 291.8266180000064
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 27.54272100000526,
+            "reusedSocket": true
+          },
+          "ms": 27.986596000002464
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 178.96346499999345,
+            "reusedSocket": true
+          },
+          "ms": 179.4332129999966
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 478.3498210000107,
+            "reusedSocket": true
+          },
+          "ms": 478.97445999999763
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 15.261251999996603,
+            "reusedSocket": true
+          },
+          "ms": 15.836644999988494
+        }
+      ],
+      "ms": 55420.958887999994,
+      "requestId": "426be8d4-7fb7-475c-887e-9d15ca108922",
+      "region": "fra1",
+      "authAndParseMs": 1.2555720000018482
+    },
+    {
+      "mode": "restore",
+      "namespace": "Homepage-Notes-Vercel-Probe-39001007775-95b9542a-8a6e-47e5-a1ac-4bf2c33c83ce",
+      "httpStatus": 200,
+      "wallMs": 16605.08926400001,
+      "status": 200,
+      "code": "RESILIENCE_VERIFIED",
+      "kind": "KOOFR_VERCEL_CONTROLLED_RESILIENCE",
+      "passed": true,
+      "checks": {
+        "isolatedSeed": true,
+        "durableBackupVerified": true,
+        "corruptSourceRejected": true,
+        "corruptBackupRejected": true,
+        "byteExactRestore": true,
+        "restoreReplyLossReconciled": true,
+        "sourceRetained": true
+      },
+      "faults": [],
+      "errors": [],
+      "restore": {
+        "sourceRevision": 0,
+        "bytes": 2307,
+        "sha256": "7e20ed6f34e79b74c42e6c14ddf5f504273960a307d572a9fc5aa05014be77da",
+        "restoredSha256": "7e20ed6f34e79b74c42e6c14ddf5f504273960a307d572a9fc5aa05014be77da",
+        "newFileIdentity": true,
+        "restorePutCount": 1,
+        "injections": [
+          {
+            "label": "restore-copy",
+            "phase": "after-response-headers",
+            "observedStatus": 201,
+            "socketDestroyed": true
+          }
+        ]
+      },
+      "extraCalls": {
+        "backup": [
+          {
+            "label": "backup-create",
+            "method": "PUT",
+            "status": 201,
+            "timing": {
+              "ttfbMs": 1538.1416639999952,
+              "reusedSocket": true
+            },
+            "ms": 1538.5890160000126
+          },
+          {
+            "label": "backup-readback",
+            "method": "GET",
+            "status": 200,
+            "timing": {
+              "ttfbMs": 521.9475419999944,
+              "reusedSocket": true
+            },
+            "ms": 522.4573110000056
+          },
+          {
+            "label": "restore-fetch-durable-backup",
+            "method": "GET",
+            "status": 200,
+            "timing": {
+              "ttfbMs": 703.6904510000022,
+              "reusedSocket": true
+            },
+            "ms": 704.239642999979
+          }
+        ],
+        "recovered": [
+          {
+            "label": "recovery-target-must-be-absent",
+            "method": "GET",
+            "status": 404,
+            "timing": {
+              "ttfbMs": 174.6293030000088,
+              "reusedSocket": true
+            },
+            "ms": 175.25819999999658
+          },
+          {
+            "label": "restore-reconcile-read",
+            "method": "GET",
+            "status": 200,
+            "timing": {
+              "dnsMs": 2.016823999991175,
+              "tcpMs": 8.40034300001571,
+              "tlsMs": 16.30201099999249,
+              "ttfbMs": 375.1230440000072,
+              "reusedSocket": false
+            },
+            "ms": 375.75368699998944
+          },
+          {
+            "label": "restore-retry-reconcile-no-put",
+            "method": "GET",
+            "status": 200,
+            "timing": {
+              "ttfbMs": 117.44335299998056,
+              "reusedSocket": true
+            },
+            "ms": 118.53555500000948
+          }
+        ],
+        "restore": [
+          {
+            "label": "restore-copy",
+            "method": "PUT",
+            "error": "NETWORK_OR_TIMEOUT",
+            "ms": 3506.605635999993
+          }
+        ]
+      },
+      "cleanup": [],
+      "possibleOutstandingLock": false,
+      "calls": [
+        {
+          "label": "new-namespace",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 254.39259099999617,
+            "reusedSocket": true
+          },
+          "ms": 254.89484400000947
+        },
+        {
+          "label": "seed-note",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1485.1450719999993,
+            "reusedSocket": true
+          },
+          "ms": 1485.7262009999977
+        },
+        {
+          "label": "seed-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 604.3767320000043,
+            "reusedSocket": true
+          },
+          "ms": 604.8211379999993
+        },
+        {
+          "label": "backup-source-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 461.80414700000256,
+            "reusedSocket": true
+          },
+          "ms": 462.27559800000745
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 190.25024599999597,
+            "reusedSocket": true
+          },
+          "ms": 190.7235240000009
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 391.58905400001095,
+            "reusedSocket": true
+          },
+          "ms": 392.0662480000028
+        },
+        {
+          "label": "locked-put",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1553.7741250000108,
+            "reusedSocket": true
+          },
+          "ms": 1554.21921499999
+        },
+        {
+          "label": "readback",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 1180.3174710000021,
+            "reusedSocket": true
+          },
+          "ms": 1180.7931490000046
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 11.8188930000033,
+            "reusedSocket": true
+          },
+          "ms": 12.252670000001672
+        },
+        {
+          "label": "corrupt-synthetic-source-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 131.66604599999846,
+            "reusedSocket": true
+          },
+          "ms": 132.3197269999946
+        },
+        {
+          "label": "corrupt-synthetic-source",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 1971.007162000009,
+            "reusedSocket": true
+          },
+          "ms": 1971.459115000005
+        },
+        {
+          "label": "corruption-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 24.06276999998954,
+            "reusedSocket": true
+          },
+          "ms": 24.508465999999316
+        },
+        {
+          "label": "lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 89.30907499999739,
+            "reusedSocket": true
+          },
+          "ms": 89.95275599999877
+        },
+        {
+          "label": "base-under-lock",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 802.5402729999914,
+            "reusedSocket": true
+          },
+          "ms": 803.0431729999982
+        },
+        {
+          "label": "unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "timing": {
+            "ttfbMs": 24.29376699999557,
+            "reusedSocket": true
+          },
+          "ms": 24.946481999999378
+        },
+        {
+          "label": "verify-corrupt-source-retained",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 310.9463070000056,
+            "reusedSocket": true
+          },
+          "ms": 311.6613360000192
+        }
+      ],
+      "ms": 16439.270268999986,
+      "requestId": "63e218d9-feb1-4603-9a19-73af102b8cf5",
+      "region": "fra1",
+      "authAndParseMs": 0.8529930000077002
+    }
+  ],
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "region": "fra1"
+}

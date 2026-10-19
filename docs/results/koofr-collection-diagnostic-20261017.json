@@ -1,0 +1,320 @@
+{
+  "kind": "KOOFR_COLLECTION_LOCK_SYNTHETIC_PREFLIGHT",
+  "at": "2026-10-17T04:23:37.034Z",
+  "namespace": "Homepage-Notes-Vercel-Probe-39002374539-38285953-7418-46ee-ab0d-61962ff9673e",
+  "passed": false,
+  "calls": [
+    {
+      "label": "new-namespace",
+      "method": "MKCOL",
+      "status": 201,
+      "ms": 1521.954844
+    },
+    {
+      "label": "seed-member",
+      "method": "PUT",
+      "status": 201,
+      "ms": 782.6574990000001
+    },
+    {
+      "label": "collection-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 160.90897200000018
+    },
+    {
+      "label": "collection-contender",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 141.20385000000033
+    },
+    {
+      "label": "tokenless-existing-member",
+      "method": "PUT",
+      "status": 423,
+      "ms": 158.25888799999984
+    },
+    {
+      "label": "verify-existing-member-preserved",
+      "method": "GET",
+      "status": 200,
+      "ms": 478.1677530000002
+    },
+    {
+      "label": "own-token-member-write",
+      "method": "PUT",
+      "status": 201,
+      "ms": 790.9005459999998
+    },
+    {
+      "label": "verify-member-write",
+      "method": "GET",
+      "status": 200,
+      "ms": 269.54823599999963
+    },
+    {
+      "label": "tokenless-new-member",
+      "method": "PUT",
+      "status": 423,
+      "ms": 160.07437799999934
+    },
+    {
+      "label": "verify-new-member-absent",
+      "method": "GET",
+      "status": 404,
+      "ms": 182.12579000000005
+    },
+    {
+      "label": "own-token-new-member",
+      "method": "PUT",
+      "status": 201,
+      "ms": 686.3102339999996
+    },
+    {
+      "label": "verify-new-member",
+      "method": "GET",
+      "status": 200,
+      "ms": 341.3446130000002
+    },
+    {
+      "label": "release-collection-lock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 140.64368900000045
+    },
+    {
+      "label": "stale-collection-token-member-write",
+      "method": "PUT",
+      "status": 412,
+      "ms": 165.39321500000005
+    },
+    {
+      "label": "verify-stale-member-preserved",
+      "method": "GET",
+      "status": 200,
+      "ms": 237.09804299999996
+    }
+  ],
+  "checks": {
+    "existingMemberProtected": true,
+    "newMemberProtected": true,
+    "staleCollectionTokenFenced": true
+  },
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "clientVariants": [
+    {
+      "variant": "untagged-sequential",
+      "namespace": "Homepage-Notes-Vercel-Probe-39002374539-df09ca5a-44b2-46b0-a7fa-241fe8ffedef",
+      "passed": true,
+      "observations": [
+        {
+          "label": "new-store",
+          "method": "MKCOL",
+          "status": 201,
+          "root": true
+        },
+        {
+          "label": "seed-catalog",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "seed-catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "root": true,
+          "rootMentionedInBody": false
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "root": false
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "immutable-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "catalog-publish",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "root": true
+        }
+      ]
+    },
+    {
+      "variant": "tagged-sequential",
+      "namespace": "Homepage-Notes-Vercel-Probe-39002374539-fa612e3b-9451-4b02-8075-d50291a43606",
+      "passed": true,
+      "observations": [
+        {
+          "label": "new-store",
+          "method": "MKCOL",
+          "status": 201,
+          "root": true
+        },
+        {
+          "label": "seed-catalog",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "seed-catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "root": true,
+          "rootMentionedInBody": false
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "root": false
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "immutable-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "catalog-publish",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 204,
+          "root": true
+        }
+      ]
+    },
+    {
+      "variant": "tagged-parallel",
+      "namespace": "Homepage-Notes-Vercel-Probe-39002374539-3c7e20cc-f099-4ec8-990e-3e74e7384ce0",
+      "passed": false,
+      "error": "IMMUTABLE_WRITE_REJECTED",
+      "cleanupStatus": 423,
+      "observations": [
+        {
+          "label": "new-store",
+          "method": "MKCOL",
+          "status": 201,
+          "root": true
+        },
+        {
+          "label": "seed-catalog",
+          "method": "PUT",
+          "status": 201,
+          "root": false
+        },
+        {
+          "label": "seed-catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "root": true,
+          "rootMentionedInBody": false
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "root": false
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "root": false
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "root": false
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 412,
+          "root": false
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 423,
+          "root": true
+        }
+      ]
+    }
+  ],
+  "possibleOutstandingLock": false
+}

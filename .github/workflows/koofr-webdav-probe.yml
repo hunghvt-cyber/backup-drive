@@ -1,0 +1,95 @@
+name: Homepage Koofr WebDAV isolated probe
+on:
+  push:
+    branches: [experiment/homepage-koofr-webdav-20261017]
+    paths: ['scripts/koofr_webdav_probe.mjs', 'scripts/koofr_webdav_verify.mjs', 'scripts/koofr_webdav_lock_probe.mjs', 'test/koofr_webdav_probe.test.mjs', 'test/koofr_webdav_lock.test.mjs', '.github/workflows/koofr-webdav-probe.yml', 'docs/HOMEPAGE-KOOFR-WEBDAV-20261017.md']
+permissions:
+  contents: read
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/koofr_webdav_probe.mjs
+      - run: node --test test/koofr_webdav*.test.mjs
+  live:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[webdav-probe]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: homepage-koofr-webdav-isolated-probe
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Synthetic new folder only; existing Koofr credential stays in runner memory
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_webdav_probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-webdav-sanitized-result
+          path: koofr-webdav-result.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  verify-retained:
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[webdav-verify]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify only the retained synthetic file and advertised locking
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_webdav_verify.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-webdav-precondition-diagnostic
+          path: koofr-webdav-verify.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  verify-lock:
+    if: github.event_name == 'push' && (contains(github.event.head_commit.message, '[webdav-lock]') || contains(github.event.head_commit.message, '[webdav-lock-stress]'))
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test advertised locks on exact retained synthetic file
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_webdav_lock_probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-webdav-lock-diagnostic
+          path: koofr-webdav-lock.local.json
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,242 @@
+{
+  "kind": "KOOFR_VERCEL_STORE100_LIVE",
+  "at": "2026-10-17T04:20:33.663Z",
+  "deployedCode": "cdbd59d081a09041a2222de1232e0a804a0ed97d",
+  "deploymentId": "dpl_GYfsZVwgBbmFZWembeF17niWP4Ep",
+  "endpoint": "https://homepage-koofr-18hxgmfez-hunghvt.vercel.app/api/bench",
+  "passed": false,
+  "completed": false,
+  "stages": [
+    {
+      "status": 200,
+      "code": "STORE100_VERIFIED",
+      "passed": true,
+      "stage": "init",
+      "checks": {
+        "freshIsolatedStore": true
+      },
+      "details": {},
+      "metrics": [],
+      "calls": [
+        {
+          "label": "new-store",
+          "method": "MKCOL",
+          "status": 201,
+          "timing": {
+            "dnsMs": 31.82311199999822,
+            "tcpMs": 38.13108700000157,
+            "tlsMs": 45.877535999999964,
+            "ttfbMs": 316.83769899999606,
+            "reusedSocket": false
+          },
+          "ms": 319.17980499999976
+        },
+        {
+          "label": "seed-catalog",
+          "method": "PUT",
+          "status": 201,
+          "timing": {
+            "ttfbMs": 794.0481979999968,
+            "reusedSocket": true
+          },
+          "ms": 794.9996489999976
+        },
+        {
+          "label": "seed-catalog-verify",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 110.81116899999324,
+            "reusedSocket": true
+          },
+          "ms": 111.58231800000067
+        }
+      ],
+      "ms": 1226.5684679999977,
+      "requestId": "47600144-ac8a-484d-9df5-4cd9255740c5",
+      "region": "fra1",
+      "authAndParseMs": 308.09362500000134,
+      "httpStatus": 200,
+      "wallMs": 1742.9352199999998
+    },
+    {
+      "status": 503,
+      "code": "STORE100_GATE_FAILED",
+      "passed": false,
+      "stage": "seed",
+      "checks": {},
+      "details": {},
+      "metrics": [
+        {
+          "operation": "seed-batch",
+          "code": "IMMUTABLE_WRITE_REJECTED",
+          "committed": false,
+          "ms": 455.7442300000039,
+          "providerCalls": 6,
+          "cleanupWarning": "LOCK_RELEASE_UNVERIFIED"
+        }
+      ],
+      "calls": [
+        {
+          "label": "collection-lock",
+          "method": "LOCK",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 77.36632600000303,
+            "reusedSocket": true
+          },
+          "ms": 78.46362900000531
+        },
+        {
+          "label": "catalog-read",
+          "method": "GET",
+          "status": 200,
+          "timing": {
+            "ttfbMs": 222.26436500000273,
+            "reusedSocket": true
+          },
+          "ms": 222.9474010000049
+        },
+        {
+          "label": "collection-unlock",
+          "method": "UNLOCK",
+          "status": 423,
+          "timing": {
+            "ttfbMs": 18.290181999997003,
+            "reusedSocket": true
+          },
+          "ms": 19.11109199999919
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "timing": {
+            "ttfbMs": 115.92695300000196,
+            "reusedSocket": true
+          },
+          "ms": 116.44430899999861
+        },
+        {
+          "label": "immutable-create",
+          "method": "PUT",
+          "status": 412,
+          "timing": {
+            "ttfbMs": 16.258514000001014,
+            "reusedSocket": true
+          },
+          "ms": 16.998619999998482
+        },
+        {
+          "label": "immutable-check-existing",
+          "method": "GET",
+          "status": 404,
+          "timing": {
+            "dnsMs": 1.9506929999988643,
+            "tcpMs": 7.5142479999994976,
+            "tlsMs": 13.191262000000279,
+            "ttfbMs": 113.61919900000066,
+            "reusedSocket": false
+          },
+          "ms": 114.59627799999726
+        }
+      ],
+      "errors": [
+        {
+          "code": "IMMUTABLE_WRITE_REJECTED",
+          "status": 409
+        }
+      ],
+      "ms": 456.1750030000039,
+      "requestId": "ae5f25dd-5cc1-4559-9f44-8b4d55627515",
+      "region": "fra1",
+      "authAndParseMs": 1.114274999992631,
+      "httpStatus": 503,
+      "wallMs": 755.2283779999998
+    }
+  ],
+  "errors": [
+    {
+      "code": "STAGE_FAILED_SEED"
+    }
+  ],
+  "credentialSource": "existing_koofr_remote",
+  "sourceNamespace": "Homepage-Notes-Vercel-Probe-39002180348-ac469545-5839-43ff-b58c-491c3bee2d07",
+  "restoreNamespace": "Homepage-Notes-Vercel-Probe-39002180348-9b1fe8ec-5b9d-49b7-b921-b4d9ed3083b5",
+  "region": "fra1",
+  "summary": {
+    "save-note": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "list-notes": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "get-note": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "create-share": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "revoke-share": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    },
+    "seed-batch": {
+      "attempted": 1,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {
+        "IMMUTABLE_WRITE_REJECTED": 1
+      }
+    },
+    "restore-batch": {
+      "attempted": 0,
+      "successful": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      "codes": {}
+    }
+  },
+  "verifiedOriginalNotes": 0
+}

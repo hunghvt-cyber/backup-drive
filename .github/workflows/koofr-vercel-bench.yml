@@ -1,0 +1,211 @@
+name: Homepage Koofr Vercel isolated benchmark
+on:
+  push:
+    branches: [experiment/homepage-koofr-webdav-20261017]
+    paths: ['experiments/vercel-koofr-lab/**', 'scripts/koofr_vercel_bench.mjs', 'scripts/koofr_vercel_resilience.mjs', 'scripts/koofr_collection_preflight.mjs', 'scripts/koofr_store100.mjs', 'scripts/koofr_store_reliability.mjs', 'scripts/koofr_preview_qualification.mjs', '.github/workflows/koofr-vercel-bench.yml']
+permissions:
+  contents: read
+jobs:
+  simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund --prefix experiments/vercel-koofr-lab
+      - run: node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs
+      - run: node --check scripts/koofr_vercel_bench.mjs
+      - run: node --check scripts/koofr_vercel_resilience.mjs
+      - run: node --check scripts/koofr_store100.mjs
+      - run: node --check scripts/koofr_store_reliability.mjs
+      - run: node --check scripts/koofr_preview_qualification.mjs
+  live:
+    if: contains(github.event.head_commit.message, '[vercel-koofr-bench]')
+    needs: simulation
+    strategy:
+      fail-fast: false
+      matrix:
+        region: [iad1, fra1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-vercel-${{ matrix.region }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: GitHub OIDC authenticated Vercel preview; synthetic namespace only
+        env:
+          BENCH_REGION: ${{ matrix.region }}
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_vercel_bench.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-vercel-${{ matrix.region }}
+          path: koofr-vercel-*.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  live-resilience:
+    if: contains(github.event.head_commit.message, '[vercel-koofr-resilience]') || contains(github.event.head_commit.message, '[vercel-koofr-expiry-recheck]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-vercel-resilience
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Isolated expiry, deliberate TLS faults and new-file restore
+        env:
+          RESILIENCE_CASES: ${{ contains(github.event.head_commit.message, '[vercel-koofr-expiry-recheck]') && 'expiry' || 'all' }}
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_vercel_resilience.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-vercel-resilience
+          path: koofr-vercel-resilience.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  collection-preflight:
+    if: contains(github.event.head_commit.message, '[koofr-collection-preflight]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test inherited locking in one new synthetic folder
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_collection_preflight.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-collection-preflight
+          path: koofr-collection-preflight.local.json
+          retention-days: 7
+
+  live-store100:
+    if: contains(github.event.head_commit.message, '[koofr-store100]') || contains(github.event.head_commit.message, '[koofr-store-guards]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-store100
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: 100 synthetic Notes, folder/share isolation and full restore through Vercel
+        env:
+          STORE100_GUARD_ONLY: ${{ contains(github.event.head_commit.message, '[koofr-store-guards]') && '1' || '0' }}
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_store100.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-store100
+          path: koofr-store100.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  live-store-reliability:
+    if: contains(github.event.head_commit.message, '[koofr-store-reliability]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-store-reliability
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Full-store socket faults and independent preview invocation races
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_store_reliability.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-store-reliability
+          path: koofr-store-reliability.local.json
+          if-no-files-found: error
+          retention-days: 7
+
+  live-preview-qualification:
+    if: contains(github.event.head_commit.message, '[koofr-preview-qualify]')
+    needs: simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: homepage-koofr-preview-qualification
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund --prefix experiments/vercel-koofr-lab
+      - name: Synthetic restore faults, API contract and 100-Note full regression
+        env:
+          KOOFR_WEBDAV_PROBE: ISOLATED_SYNTHETIC_ONLY
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+          KOOFR_WEBDAV_USER: ${{ secrets.KOOFR_WEBDAV_USER }}
+          KOOFR_WEBDAV_APP_PASSWORD: ${{ secrets.KOOFR_WEBDAV_APP_PASSWORD }}
+        run: node scripts/koofr_preview_qualification.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-koofr-preview-qualification
+          path: koofr-preview-qualification.local.json
+          if-no-files-found: error
+          retention-days: 7

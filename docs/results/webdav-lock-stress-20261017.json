@@ -1,0 +1,976 @@
+{
+  "kind": "KOOFR_WEBDAV_ADVERTISED_LOCK_DIAGNOSTIC",
+  "at": "2026-10-17T03:18:45.190Z",
+  "namespace": "Homepage-Notes-WebDAV-Probe-6fedd63c-5f5a-40e2-988d-ac017ace2cd9",
+  "completed": true,
+  "passed": true,
+  "calls": [
+    {
+      "label": "read-before",
+      "method": "GET",
+      "status": 200,
+      "ms": 2597.635347
+    },
+    {
+      "label": "exclusive-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 427.682718
+    },
+    {
+      "label": "competing-lock",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 203.24957300000005
+    },
+    {
+      "label": "write-without-lock-token",
+      "method": "PUT",
+      "status": 423,
+      "ms": 418.66267100000005
+    },
+    {
+      "label": "verify-denied-write",
+      "method": "GET",
+      "status": 200,
+      "ms": 847.6325670000001
+    },
+    {
+      "label": "write-with-lock-token",
+      "method": "PUT",
+      "status": 201,
+      "ms": 987.9549280000001
+    },
+    {
+      "label": "verify-locked-write",
+      "method": "GET",
+      "status": 200,
+      "ms": 1023.0825150000001
+    },
+    {
+      "label": "release-lock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 357.4363000000003
+    },
+    {
+      "label": "stale-lock-token-write",
+      "method": "PUT",
+      "status": 412,
+      "ms": 394.8384130000004
+    },
+    {
+      "label": "verify-stale-token-preserved",
+      "method": "GET",
+      "status": 200,
+      "ms": 589.5199189999994
+    },
+    {
+      "label": "race-lock-0-A",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 375.8539350000001
+    },
+    {
+      "label": "race-lock-0-B",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 401.3579230000005
+    },
+    {
+      "label": "race-read-under-lock-0",
+      "method": "GET",
+      "status": 200,
+      "ms": 455.3899769999989
+    },
+    {
+      "label": "race-write-0",
+      "method": "PUT",
+      "status": 201,
+      "ms": 690.7881020000004
+    },
+    {
+      "label": "race-readback-0",
+      "method": "GET",
+      "status": 200,
+      "ms": 499.41188800000054
+    },
+    {
+      "label": "race-unlock-0",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 345.91676000000007
+    },
+    {
+      "label": "loser-retry-lock-0",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 547.431842
+    },
+    {
+      "label": "loser-recheck-base-0",
+      "method": "GET",
+      "status": 200,
+      "ms": 524.6186749999997
+    },
+    {
+      "label": "loser-unlock-0",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 410.5355550000004
+    },
+    {
+      "label": "race-lock-1-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 378.2879589999993
+    },
+    {
+      "label": "race-lock-1-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 733.1121029999995
+    },
+    {
+      "label": "race-read-under-lock-1",
+      "method": "GET",
+      "status": 200,
+      "ms": 482.4581539999999
+    },
+    {
+      "label": "race-write-1",
+      "method": "PUT",
+      "status": 201,
+      "ms": 863.6296559999992
+    },
+    {
+      "label": "race-readback-1",
+      "method": "GET",
+      "status": 200,
+      "ms": 428.88898100000006
+    },
+    {
+      "label": "race-unlock-1",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 405.1371879999988
+    },
+    {
+      "label": "loser-retry-lock-1",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 481.2886929999986
+    },
+    {
+      "label": "loser-recheck-base-1",
+      "method": "GET",
+      "status": 200,
+      "ms": 504.72291100000075
+    },
+    {
+      "label": "loser-unlock-1",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 344.8492040000001
+    },
+    {
+      "label": "race-lock-2-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 385.0196529999994
+    },
+    {
+      "label": "race-lock-2-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 779.441648
+    },
+    {
+      "label": "race-read-under-lock-2",
+      "method": "GET",
+      "status": 200,
+      "ms": 663.0378009999986
+    },
+    {
+      "label": "race-write-2",
+      "method": "PUT",
+      "status": 201,
+      "ms": 924.5847059999978
+    },
+    {
+      "label": "race-readback-2",
+      "method": "GET",
+      "status": 200,
+      "ms": 513.9123650000001
+    },
+    {
+      "label": "race-unlock-2",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 587.5327499999985
+    },
+    {
+      "label": "loser-retry-lock-2",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 410.6905509999997
+    },
+    {
+      "label": "loser-recheck-base-2",
+      "method": "GET",
+      "status": 200,
+      "ms": 430.5708080000004
+    },
+    {
+      "label": "loser-unlock-2",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 382.46589799999856
+    },
+    {
+      "label": "race-lock-3-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 370.5284109999993
+    },
+    {
+      "label": "race-lock-3-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 422.7230100000015
+    },
+    {
+      "label": "race-read-under-lock-3",
+      "method": "GET",
+      "status": 200,
+      "ms": 643.5636530000011
+    },
+    {
+      "label": "race-write-3",
+      "method": "PUT",
+      "status": 201,
+      "ms": 899.6566039999998
+    },
+    {
+      "label": "race-readback-3",
+      "method": "GET",
+      "status": 200,
+      "ms": 2199.4168769999997
+    },
+    {
+      "label": "race-unlock-3",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 347.19942199999787
+    },
+    {
+      "label": "loser-retry-lock-3",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 428.28816800000277
+    },
+    {
+      "label": "loser-recheck-base-3",
+      "method": "GET",
+      "status": 200,
+      "ms": 447.89154100000087
+    },
+    {
+      "label": "loser-unlock-3",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 362.2193499999994
+    },
+    {
+      "label": "race-lock-4-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 362.0450920000003
+    },
+    {
+      "label": "race-lock-4-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 434.4188350000004
+    },
+    {
+      "label": "race-read-under-lock-4",
+      "method": "GET",
+      "status": 200,
+      "ms": 777.4907419999981
+    },
+    {
+      "label": "race-write-4",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1857.286959000001
+    },
+    {
+      "label": "race-readback-4",
+      "method": "GET",
+      "status": 200,
+      "ms": 929.4325349999999
+    },
+    {
+      "label": "race-unlock-4",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 383.62725299999875
+    },
+    {
+      "label": "loser-retry-lock-4",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 705.5518589999992
+    },
+    {
+      "label": "loser-recheck-base-4",
+      "method": "GET",
+      "status": 200,
+      "ms": 1194.3227330000009
+    },
+    {
+      "label": "loser-unlock-4",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 369.7130259999976
+    },
+    {
+      "label": "race-lock-5-A",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 414.0119760000016
+    },
+    {
+      "label": "race-lock-5-B",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 425.84330999999656
+    },
+    {
+      "label": "race-read-under-lock-5",
+      "method": "GET",
+      "status": 200,
+      "ms": 743.0636329999979
+    },
+    {
+      "label": "race-write-5",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1371.5680340000035
+    },
+    {
+      "label": "race-readback-5",
+      "method": "GET",
+      "status": 200,
+      "ms": 606.5833259999999
+    },
+    {
+      "label": "race-unlock-5",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 356.23484100000496
+    },
+    {
+      "label": "loser-retry-lock-5",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 372.15687900000194
+    },
+    {
+      "label": "loser-recheck-base-5",
+      "method": "GET",
+      "status": 200,
+      "ms": 658.6150340000022
+    },
+    {
+      "label": "loser-unlock-5",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 570.1125810000012
+    },
+    {
+      "label": "race-lock-6-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 368.8418459999957
+    },
+    {
+      "label": "race-lock-6-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 377.8802660000001
+    },
+    {
+      "label": "race-read-under-lock-6",
+      "method": "GET",
+      "status": 200,
+      "ms": 667.0745310000057
+    },
+    {
+      "label": "race-write-6",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1823.728697999999
+    },
+    {
+      "label": "race-readback-6",
+      "method": "GET",
+      "status": 200,
+      "ms": 747.0524279999954
+    },
+    {
+      "label": "race-unlock-6",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 393.4129729999986
+    },
+    {
+      "label": "loser-retry-lock-6",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 361.2483360000042
+    },
+    {
+      "label": "loser-recheck-base-6",
+      "method": "GET",
+      "status": 200,
+      "ms": 704.3569859999989
+    },
+    {
+      "label": "loser-unlock-6",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 371.9839040000006
+    },
+    {
+      "label": "race-lock-7-B",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 402.1415229999984
+    },
+    {
+      "label": "race-lock-7-A",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 583.6994580000028
+    },
+    {
+      "label": "race-read-under-lock-7",
+      "method": "GET",
+      "status": 200,
+      "ms": 1035.6493719999999
+    },
+    {
+      "label": "race-write-7",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1128.9218449999971
+    },
+    {
+      "label": "race-readback-7",
+      "method": "GET",
+      "status": 200,
+      "ms": 502.39188800000557
+    },
+    {
+      "label": "race-unlock-7",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 369.56434000000445
+    },
+    {
+      "label": "loser-retry-lock-7",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 416.61640199999965
+    },
+    {
+      "label": "loser-recheck-base-7",
+      "method": "GET",
+      "status": 200,
+      "ms": 4163.400882000002
+    },
+    {
+      "label": "loser-unlock-7",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 353.85994900000514
+    },
+    {
+      "label": "race-lock-8-A",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 408.58627900000283
+    },
+    {
+      "label": "race-lock-8-B",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 611.4715559999968
+    },
+    {
+      "label": "race-read-under-lock-8",
+      "method": "GET",
+      "status": 200,
+      "ms": 525.8832800000018
+    },
+    {
+      "label": "race-write-8",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1643.5997949999946
+    },
+    {
+      "label": "race-readback-8",
+      "method": "GET",
+      "status": 200,
+      "ms": 1037.008117999998
+    },
+    {
+      "label": "race-unlock-8",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 374.82587700000295
+    },
+    {
+      "label": "loser-retry-lock-8",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 418.7282639999976
+    },
+    {
+      "label": "loser-recheck-base-8",
+      "method": "GET",
+      "status": 200,
+      "ms": 494.2541779999956
+    },
+    {
+      "label": "loser-unlock-8",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 368.44410499999503
+    },
+    {
+      "label": "race-lock-9-B",
+      "method": "LOCK",
+      "status": 423,
+      "ms": 383.3877649999995
+    },
+    {
+      "label": "race-lock-9-A",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 406.07087299999694
+    },
+    {
+      "label": "race-read-under-lock-9",
+      "method": "GET",
+      "status": 200,
+      "ms": 490.1798920000001
+    },
+    {
+      "label": "race-write-9",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1153.3831500000015
+    },
+    {
+      "label": "race-readback-9",
+      "method": "GET",
+      "status": 200,
+      "ms": 643.629065000001
+    },
+    {
+      "label": "race-unlock-9",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 384.36642000000575
+    },
+    {
+      "label": "loser-retry-lock-9",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 905.4746159999995
+    },
+    {
+      "label": "loser-recheck-base-9",
+      "method": "GET",
+      "status": 200,
+      "ms": 395.7161849999975
+    },
+    {
+      "label": "loser-unlock-9",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 363.6930759999959
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 363.5434549999991
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 926.3723039999968
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1994.0862679999918
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 917.057215000008
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 602.3063430000038
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 447.3219309999986
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 914.2566309999966
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1232.8886749999947
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 904.8644099999947
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 472.8070299999963
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 906.6687690000108
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 549.1852419999923
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 785.667644000001
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 419.9640639999998
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 380.06184999999823
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 428.1953460000077
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 830.7034130000102
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 725.9870910000027
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 656.6445289999974
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 346.15362100000493
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 425.1919009999983
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 448.398239999995
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 843.3863209999981
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 580.0214479999995
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 347.21805300000415
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 375.43520900000294
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 671.0273230000021
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 759.1245090000011
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 458.4671180000005
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 346.2061919999978
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 388.53570500000205
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 434.5969299999997
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1434.565684000001
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 707.0204599999997
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 336.1540309999982
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 455.22245600000315
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 570.9853349999903
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1102.8728709999996
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 548.2401429999882
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 360.6541359999974
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 361.36203000000387
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 945.7656830000051
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 777.6781199999969
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 668.1786930000089
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 437.26023699999496
+    },
+    {
+      "label": "benchmark-lock",
+      "method": "LOCK",
+      "status": 200,
+      "ms": 363.08079200000793
+    },
+    {
+      "label": "benchmark-base-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 428.35207400000945
+    },
+    {
+      "label": "benchmark-locked-put",
+      "method": "PUT",
+      "status": 201,
+      "ms": 960.5970300000045
+    },
+    {
+      "label": "benchmark-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 826.5465909999912
+    },
+    {
+      "label": "benchmark-unlock",
+      "method": "UNLOCK",
+      "status": 204,
+      "ms": 346.4804119999899
+    }
+  ],
+  "checks": {
+    "exclusiveLock": true,
+    "uncredentialedWriterBlocked": true,
+    "lockedWrite": true,
+    "staleLockTokenRejected": true
+  },
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "lockStatus": 200,
+  "advertisedTimeout": null,
+  "deniedWriterStatus": 423,
+  "deniedWriterContentPreserved": true,
+  "staleWriterStatus": 412,
+  "staleWriterContentPreserved": true,
+  "racePairsVerified": 10,
+  "saveCycles": [
+    {
+      "ms": 4803.578855000007,
+      "bytes": 2034
+    },
+    {
+      "ms": 3972.327735999992,
+      "bytes": 2034
+    },
+    {
+      "ms": 3041.7385340000037,
+      "bytes": 2034
+    },
+    {
+      "ms": 2987.865555000011,
+      "bytes": 2034
+    },
+    {
+      "ms": 2644.3931710000033,
+      "bytes": 2034
+    },
+    {
+      "ms": 2610.5002730000124,
+      "bytes": 2034
+    },
+    {
+      "ms": 3301.0490839999984,
+      "bytes": 2034
+    },
+    {
+      "ms": 3038.152012000006,
+      "bytes": 2034
+    },
+    {
+      "ms": 3190.490577999997,
+      "bytes": 2034
+    },
+    {
+      "ms": 2925.2714650000125,
+      "bytes": 2034
+    }
+  ],
+  "saveSummary": {
+    "success": 10,
+    "p50": 3038.152012000006,
+    "p95": 4803.578855000007
+  },
+  "final": {
+    "bytes": 2034,
+    "sha256": "10ce7fae4900cfe07546c608855c6cc241d41185ca6b90576e28d8da62173e66"
+  },
+  "possibleOutstandingLock": false
+}

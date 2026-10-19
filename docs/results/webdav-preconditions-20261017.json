@@ -1,0 +1,56 @@
+{
+  "kind": "KOOFR_WEBDAV_RETAINED_PRECONDITION_DIAGNOSTIC",
+  "at": "2026-10-17T03:13:08.606Z",
+  "namespace": "Homepage-Notes-WebDAV-Probe-6fedd63c-5f5a-40e2-988d-ac017ace2cd9",
+  "completed": true,
+  "checks": {
+    "createGuardActuallyOverwrote": true,
+    "invalidIfMatchRejected": false,
+    "invalidIfMatchPreserved": false,
+    "invalidIfMatchActuallyOverwrote": true
+  },
+  "calls": [
+    {
+      "label": "retained-read",
+      "method": "GET",
+      "status": 200,
+      "ms": 1007.521654
+    },
+    {
+      "label": "server-capabilities",
+      "method": "OPTIONS",
+      "status": 200,
+      "ms": 729.3293970000002
+    },
+    {
+      "label": "invalid-if-match",
+      "method": "PUT",
+      "status": 201,
+      "ms": 1184.072432
+    },
+    {
+      "label": "invalid-if-match-readback",
+      "method": "GET",
+      "status": 200,
+      "ms": 490.8584599999999
+    }
+  ],
+  "errors": [],
+  "credentialSource": "existing_koofr_remote",
+  "before": {
+    "bytes": 2022,
+    "sha256": "afef54741d40f91107748c6d2b20e75235c556ff44d6564db262c7b0322c9ad4",
+    "strongETag": true
+  },
+  "capabilities": {
+    "status": 200,
+    "dav": "1, 2",
+    "allow": "OPTIONS, LOCK, DELETE, PROPPATCH, COPY, MOVE, UNLOCK, PROPFIND"
+  },
+  "after": {
+    "bytes": 2053,
+    "sha256": "0fe2f0e6a2c036c603167e6d1e5802c9b09dad3bf7244f26061461db2c1319f2",
+    "etagChanged": true
+  },
+  "safeForConditionalNotes": false
+}

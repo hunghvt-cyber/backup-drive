@@ -1,0 +1,21 @@
+{
+  "project": "homepage-koofr-lab",
+  "projectId": "prj_ZJDuwQOKVSzqfs3z0IMLAOrlNudX",
+  "deployedCode": "4a5a5b2ade3a8c47a44ab74520e74f968b434e4c",
+  "deployments": [
+    {
+      "id": "dpl_28XunbeDeDcgZMMHWbCp2Vuw9fR8",
+      "url": "https://homepage-koofr-5mktrpckb-hunghvt.vercel.app",
+      "observedRegion": "iad1",
+      "target": null
+    },
+    {
+      "id": "dpl_7DCBKR1TeB7j3uZQJWrdcQ7JjTtx",
+      "url": "https://homepage-koofr-5hfjox8ll-hunghvt.vercel.app",
+      "observedRegion": "fra1",
+      "target": null
+    }
+  ],
+  "note": "Dedicated lab only. Initial scaffold dpl_7jaWQUKzev6BYYq6xyY91ficTxw9 was auto-assigned the new lab production alias by Vercel; measurements use the two target=null deployments. No Homepage or Home-AI production target was changed. No account secret stored in Vercel.",
+  "expires": "2026-10-18T03:00:00Z"
+}

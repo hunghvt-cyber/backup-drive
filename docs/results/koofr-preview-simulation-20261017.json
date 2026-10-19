@@ -1,0 +1,12 @@
+{
+  "kind": "LOCAL_SIMULATION_AND_HTTP_ONLY",
+  "tests": 85,
+  "passed": 85,
+  "failed": 0,
+  "node": "24.19.0",
+  "provider": "in-memory fake WebDAV",
+  "actualLocalHttp": true,
+  "realKoofr": false,
+  "sourceCommit": "8e4d4af37de24cd30bc6b6603593626299ca5c3c",
+  "command": "node --test experiments/vercel-koofr-lab/test/*.test.mjs test/koofr_webdav*.test.mjs"
+}

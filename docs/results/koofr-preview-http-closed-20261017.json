@@ -1,0 +1,41 @@
+{
+  "kind": "STANDALONE_HTTPS_CLOSED_SMOKE",
+  "deployment": "dpl_EzLBLjkgH3d4SnV8QoMBrtM2rZ4U",
+  "source": "8e4d4af37de24cd30bc6b6603593626299ca5c3c",
+  "rows": [
+    {
+      "route": "health",
+      "status": 200,
+      "value": {
+        "kind": "koofr-notes-synthetic-api-preview",
+        "configured": false,
+        "production": false
+      },
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "route": "notes",
+      "status": 503,
+      "value": {
+        "code": "PREVIEW_DISABLED",
+        "error": "Chưa xác minh được kết quả; giữ bản nháp và mã thao tác để thử lại.",
+        "reference": "KP-420ce0c9"
+      },
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    },
+    {
+      "route": "auth",
+      "status": 503,
+      "value": {
+        "code": "PREVIEW_DISABLED",
+        "error": "Chưa xác minh được kết quả; giữ bản nháp và mã thao tác để thử lại.",
+        "reference": "KP-f0a1d45c"
+      },
+      "cacheControl": "no-store",
+      "contentType": "application/json"
+    }
+  ],
+  "passed": true
+}
