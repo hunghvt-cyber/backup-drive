@@ -5,6 +5,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from publish_gas_report import normalize, publish, safe_error
 REPO='hunghvt-cyber/my-backup-gdrive-koofr'
 
@@ -55,20 +56,27 @@ def reconstruct(run,jobs,job_log,artifact_root):
 def api(path,raw=False):
     req=Request('https://api.github.com/repos/'+REPO+path,headers={
         'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-    with urlopen(req,timeout=20) as response:
-        data=response.read(8*1024*1024+1)
+    try:
+        with urlopen(req,timeout=20) as response:
+            data=response.read(8*1024*1024+1)
+    except HTTPError as error:
+        raise ValueError('GITHUB_HTTP_'+str(error.code)) from None
     if len(data)>8*1024*1024:
         raise ValueError('RESPONSE_TOO_LARGE')
     return data.decode('utf-8') if raw else json.loads(data)
 
 def main():
     run_id='39337249732'
+    print('RECOVERY_STAGE=run_metadata')
     run=api('/actions/runs/'+run_id)
+    print('RECOVERY_STAGE=jobs_metadata')
     jobs=api('/actions/runs/'+run_id+'/jobs')
     matches=[j for j in jobs['jobs'] if j.get('name')=='run-bisync']
     if len(matches)!=1:
         raise ValueError('UNVERIFIED_BACKUP')
+    print('RECOVERY_STAGE=job_logs')
     logs=api('/actions/jobs/'+str(matches[0]['id'])+'/logs',raw=True)
+    print('RECOVERY_STAGE=validate_original')
     report=reconstruct(run,jobs,logs,'recovery')
     env={**os.environ,'GITHUB_REPOSITORY':REPO,'GITHUB_RUN_ID':run_id,
         'GITHUB_RUN_NUMBER':str(run['run_number']),'GITHUB_RUN_ATTEMPT':str(run['run_attempt']),
@@ -79,5 +87,8 @@ if __name__=='__main__':
     try:
         main()
     except Exception as error:
-        print('REPORT_RECOVERY_FAILED: '+safe_error(error),file=sys.stderr)
+        code=str(error)
+        if code not in ('UNVERIFIED_BACKUP','UNVERIFIED_BACKUP_TIME','INVALID_ARTIFACT','RESPONSE_TOO_LARGE','GITHUB_HTTP_401','GITHUB_HTTP_403','GITHUB_HTTP_404'):
+            code=safe_error(error)
+        print('REPORT_RECOVERY_FAILED: '+code,file=sys.stderr)
         raise SystemExit(1)
