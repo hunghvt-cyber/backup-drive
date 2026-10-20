@@ -7,17 +7,8 @@ text="\n".join(p.read_text(errors="replace") for p in logs)
 def last(pattern):
     m=re.findall(pattern,text,re.I|re.M)
     return m[-1] if m else None
-# rclone one-line progress (different versions may use GiB/MiB and /s suffix).
-stats=re.findall(r"Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB)\s*/\s*[\d.]+\s*(?:GiB|MiB|TiB),\s*\d+%,\s*([\d.]+)\s*(MiB|KiB|GiB)/s",text,re.I)
-if not stats:
-    stats=re.findall(r"Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB).*?,\s*([\d.]+)\s*(MiB|KiB|GiB)/s",text,re.I)
-def conv(v,unit,base):
-    return round(float(v)*1024**({"kib":-1,"mib":0,"gib":1,"tib":2}[unit.lower()]-base),3)
-amount=speed=None
-if stats:
-    v,u,v2,u2=stats[-1]
-    amount=conv(v,u,1)
-    speed=conv(v2,u2,0)
+from report_metrics import parse_metrics
+amount,speed=parse_metrics(text)
 ignored_file=Path(".sync-state/ignored-files.txt")
 ignored=len([line for line in ignored_file.read_text().splitlines() if line.strip()]) if ignored_file.exists() else None
 new=os.getenv("NEW_IGNORED","")
