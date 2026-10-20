@@ -43,15 +43,8 @@ def reconstruct(run,jobs,job_log,artifact_root):
     text=log.read_text(errors='replace')
     if not re.search(r'Bisync successful',text):
         raise ValueError('UNVERIFIED_BACKUP')
-    stats=re.findall(r'Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB)\s*/\s*[\d.]+\s*(?:GiB|MiB|TiB),\s*\d+%,\s*([\d.]+)\s*(MiB|KiB|GiB)/s',text,re.I)
-    if not stats:
-        stats=re.findall(r'Transferred:\s*([\d.]+)\s*(GiB|MiB|TiB).*?,\s*([\d.]+)\s*(MiB|KiB|GiB)/s',text,re.I)
-    amount=speed=None
-    if stats:
-        v,u,v2,u2=stats[-1]
-        units={'kib':-1,'mib':0,'gib':1,'tib':2}
-        amount=round(float(v)*1024**(units[u.lower()]-1),3)
-        speed=round(float(v2)*1024**units[u2.lower()],3)
+    from report_metrics import parse_metrics
+    amount,speed=parse_metrics(text)
     ignored=root/'.sync-state/ignored-files.txt'
     ignored_count=len([x for x in ignored.read_text().splitlines() if x.strip()]) if ignored.is_file() else None
     finished=steps['Final Status']['completed_at']
