@@ -30,3 +30,11 @@ class RecoveryTests(unittest.TestCase):
             with self.assertRaises(ValueError):reconstruct(run,broken,log,tmp)
             Path(tmp,'bisync.log').unlink()
             with self.assertRaises(ValueError):reconstruct(run,jobs,log,tmp)
+
+    def test_signed_log_redirect_does_not_forward_github_bearer(self):
+        from recover_bisync_report import SafeGitHubRedirect
+        from urllib.request import Request
+        req=Request('https://api.github.com/repos/example/actions/jobs/1/logs',headers={'Authorization':'Bearer synthetic-only'})
+        redirect=SafeGitHubRedirect().redirect_request(req,None,302,'Found',{},'https://example.blob.core.windows.net/signed-log')
+        self.assertIsNone(redirect.get_header('Authorization'))
+        with self.assertRaises(ValueError):SafeGitHubRedirect().redirect_request(req,None,302,'Found',{},'http://example.test/log')

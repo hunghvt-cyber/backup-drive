@@ -4,10 +4,20 @@ import os
 import re
 import sys
 from pathlib import Path
-from urllib.request import Request, urlopen
+from urllib.request import Request, HTTPRedirectHandler, build_opener
+from urllib.parse import urlparse
 from urllib.error import HTTPError
 from publish_gas_report import normalize, publish, safe_error
 REPO='hunghvt-cyber/my-backup-gdrive-koofr'
+
+class SafeGitHubRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if urlparse(newurl).scheme != 'https':
+            raise ValueError('UNSAFE_REDIRECT')
+        redirected=super().redirect_request(req,fp,code,msg,headers,newurl)
+        if redirected is not None:
+            redirected.remove_header('Authorization')
+        return redirected
 
 def reconstruct(run,jobs,job_log,artifact_root):
     run_id=run['id']
@@ -57,7 +67,7 @@ def api(path,raw=False):
     req=Request('https://api.github.com/repos/'+REPO+path,headers={
         'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
     try:
-        with urlopen(req,timeout=20) as response:
+        with build_opener(SafeGitHubRedirect).open(req,timeout=20) as response:
             data=response.read(8*1024*1024+1)
     except HTTPError as error:
         raise ValueError('GITHUB_HTTP_'+str(error.code)) from None
