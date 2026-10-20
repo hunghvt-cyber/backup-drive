@@ -1,0 +1,27 @@
+name: Recover real bisync report only
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  recover-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Download original bisync report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bisync-report-39337249732
+          path: recovery
+          run-id: 39337249732
+          github-token: ${{ github.token }}
+      - name: Validate original terminal outcome and publish aggregate only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT_GAS_URL: ${{ vars.REPORT_GAS_URL }}
+          REPORT_GAS_KEY: ${{ secrets.REPORT_GAS_KEY }}
+        run: python3 scripts/recover_bisync_report.py
