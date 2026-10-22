@@ -1,4 +1,4 @@
-name: Diagnose Drive API access (read-only)
+name: Verified duplicate cleanup (recoverable)
 on:
   workflow_dispatch:
 permissions:
@@ -22,37 +22,357 @@ jobs:
           umask 077
           mkdir -p ~/.config/rclone audit encrypted
           printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > ~/.config/rclone/rclone.conf
-      - name: Diagnose Drive API authorization without modifying files
+      - name: Recoverable cleanup of 45 audited Drive copies and 6 Koofr copies
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          rclone lsd gdrive:/ --max-depth 1 --log-file audit/drive.log > audit/root-folders.txt
-          rclone cat koofr:/CloudDedupe-Quarantine/39808454335/cleanup-journal.json --log-file audit/koofr.log > audit/previous-journal.json
-          python3 - <<'PY'
-          import configparser,json,pathlib,urllib.request,urllib.error
-          c=configparser.ConfigParser(interpolation=None)
-          c.read(pathlib.Path.home()/'.config/rclone/rclone.conf')
-          t=json.loads(c['gdrive']['token'])
-          target=json.loads(pathlib.Path('audit/previous-journal.json').read_text())['entries'][0]['target']['ID']
-          results=[]
-          for label,url in [
-              ('target_minimal','https://www.googleapis.com/drive/v3/files/'+target+'?fields=id&supportsAllDrives=true'),
-              ('target_metadata','https://www.googleapis.com/drive/v3/files/'+target+'?fields=id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime&supportsAllDrives=true'),
-              ('list','https://www.googleapis.com/drive/v3/files?pageSize=1&fields=files(id)'),
-              ('root_metadata','https://www.googleapis.com/drive/v3/files/root?fields=id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime&supportsAllDrives=true')]:
-              req=urllib.request.Request(url,headers={'Authorization':'Bearer '+t['access_token']})
+          cat > plan.json <<'PLAN'
+          {
+            "source_inventory_run": 39806736634,
+            "salt": "af7236bd3481cc5acbd0824cc6421506",
+            "entries": [
+              {
+                "kind": "unicode",
+                "keep": "bb646838bd67e948e19a373932552f56a9cd7259f51b6a89789e02b8572daa43",
+                "remove": "171b9e2035cb19858bfe0a6d95b94f95c788f5bd8c79915fdb26f8dba7548acf"
+              },
+              {
+                "kind": "unicode",
+                "keep": "f705cacab1f5bc6201082b0423666b12d2624bc0935bbea72676459ee6952813",
+                "remove": "401b178b04d4b7de82234be6e09c473670762608ffb0cc88221c20e32d1109c5"
+              },
+              {
+                "kind": "unicode",
+                "keep": "2c8f64fe70f6b235c31696505a3e3fa6fcbc724f1c5006533636c51220daf043",
+                "remove": "bf6e25ebf14ee49fe13b1f6eb99008c5cb0bda5648736cf4d6f3f58f6ead689a"
+              },
+              {
+                "kind": "unicode",
+                "keep": "d723abe97941b19453e0c0a6551fff8dddde1f66c9e4cb617613b614a1b0dd6b",
+                "remove": "cd80f5f9160ca5b431a94f6ca87de2edb5aad5558ea8e00702b10cafdd6c0d72"
+              },
+              {
+                "kind": "unicode",
+                "keep": "e3dc3f705af48df387c055bf35c7a759a77c97b6e66d879d4c74fdf8f1eb3f9d",
+                "remove": "42a31103d7d08d3678c473470d7a1235891d5d395b7c88bd09fa9599b014b77e"
+              },
+              {
+                "kind": "unicode",
+                "keep": "57fa2664490a47b6c74cadc95822a9f2851b5e5419514862c56cd94fd9505d2d",
+                "remove": "c6386f739d7172560088da83321e5d2b8b482c0121a8655c5df6bf5f71173c02"
+              },
+              {
+                "kind": "unicode",
+                "keep": "fabb56f69812ec9f9ce3721b182b026b0d666d2998b0ebdf7cc7ef75ea21244b",
+                "remove": "f83716bb65bfa1dc21f29a160111b5f8375b32af567c05b83974b95f535c08dc"
+              },
+              {
+                "kind": "unicode",
+                "keep": "354ef244ba5e73fcf9cbfe9cb8d5c4a43aa9328f03dfada6fe3bf3d350f5ec6e",
+                "remove": "9468cd6645692c86ce43503dddc6eadea2ea637f064094b383bb4ef9ef38538a"
+              },
+              {
+                "kind": "unicode",
+                "keep": "1c02ffafada44a854644a8fc6fd69b9374f4dd7cd5e080620a743ba6a7068ac8",
+                "remove": "2a09274f03be1f97db720687a0bfef26fd2110a3d42ec6e44d07c30229b36e5a"
+              },
+              {
+                "kind": "unicode",
+                "keep": "70d5ff164688a1ffab38b8bb2651d519d9325da55850b1f0aa2a7b6425ead3c4",
+                "remove": "37bd53d7265379c3422eb1be9cb10d684f4b1b03e3f22f0fabdaedb11bf40b2d"
+              },
+              {
+                "kind": "unicode",
+                "keep": "bc7c10bbc387c9bceeeb0e7cbcd365711dee48335cc44e179700b8ab02cf9ab7",
+                "remove": "a833decf328257028ba07f2123e5dadf075c5456fcc8a12fbae93ecfae19a04c"
+              },
+              {
+                "kind": "unicode",
+                "keep": "547963e8978a9adabc654e7dc6faeeaf103a7918d969d9d06d740f0a8b1b1bfc",
+                "remove": "bd6cb937aac4ecf0054cbc426bdea85d432423023af0c4d61da1767b6bc2657a"
+              },
+              {
+                "kind": "unicode",
+                "keep": "1224ca9e7f5e91661c4e80ff85f5a2bbdf28335e78e8f39996f4a8e6132ea2d0",
+                "remove": "a6ebf9497a6d992ed6b85dd5f900444f45edb1d8786e9734be7d992f897574ba"
+              },
+              {
+                "kind": "unicode",
+                "keep": "98679367b6b4833caebac112cef62c97a3ce444523cd1f0f6fba1fdc3db5f913",
+                "remove": "d22c1f41896f0db7fb7e8002542289d94ea37b521ce9cb09955593de6cac1df2"
+              },
+              {
+                "kind": "unicode",
+                "keep": "8d3c88d0cdf926281d46a7b289c484c121c48a1865901d946559664814ba719f",
+                "remove": "4c92f9d93a27dfc6e00bccb8ceb644ff1dcc116328d92c7d07ce3237bd7794f4"
+              },
+              {
+                "kind": "unicode",
+                "keep": "dadac22e22f936d11992016250525c3dc926371f277926d2afd750d8c42b23fa",
+                "remove": "937a04c8abdd92acebb6971c172e91783cfa5bdf23f3f776b9b5d451627c3d41"
+              },
+              {
+                "kind": "unicode",
+                "keep": "fa9619a8382a6ca7541453533c25e06684d9972c001da13c88b7907fd9cf5ac8",
+                "remove": "7d18d5c2309b067451ca689b0da4d0e1d3b2b9fa448fd43401460c0b676a91bb"
+              },
+              {
+                "kind": "unicode",
+                "keep": "15eb5ed16a48f127876ec1992aec2e4cd12b0865812d7056803ce1d1f08f6dec",
+                "remove": "36da4817bca6316128db8e6538c536f2cb4e51112bfa0cafd5f97b36c06f327d"
+              },
+              {
+                "kind": "unicode",
+                "keep": "d0da3785bba8a92c93638fb4fb696360c80be4ca05c3baa37e6c5f7ca823387f",
+                "remove": "2ccb68af4fc244ac03f3824b2f38b8f3237c4c8dfd8ee6bc95256d44b5101582"
+              },
+              {
+                "kind": "unicode",
+                "keep": "73b5d1c2eccf42a5f4c63b813f4266c3f65b0316602af7606ae0353fb974eea9",
+                "remove": "db5183c790a3924170481eccb7d684f9d5f9c80acbf9b0383b73028db9245c88"
+              },
+              {
+                "kind": "unicode",
+                "keep": "40104b9d3eef92bbc404d99eefa5a372f2217a87679cc6c33244f0fea9ff23b3",
+                "remove": "0c072c93c66e6b42e4c5a77dba3ae6fe73fc6b114548953bc0b956de13411145"
+              },
+              {
+                "kind": "unicode",
+                "keep": "17bb497fb1f01a82c8e1a49dfdb1df24c505ec83cab2dcab273fa67d52915216",
+                "remove": "c57c2a4f187407f4464f59e157a8948565b1f0caaa070f7df2f6e0933e9f7a52"
+              },
+              {
+                "kind": "unicode",
+                "keep": "70173b3e6e3c9bb1ee0e0b9b6dcfbc75882b11a69ae4423562f814a5b4a99b5e",
+                "remove": "5374ae38897029dfefcbafb35b7f587130919efc077e20cc0d67f6b35182de3b"
+              },
+              {
+                "kind": "unicode",
+                "keep": "bacffeaad1a2e586a67e2d226e6604cbddf0844f68d9311c60746e8471a17039",
+                "remove": "a903853fee65fb5b692517d089178a5c3be8097aaa3115e50edc720d874690b1"
+              },
+              {
+                "kind": "unicode",
+                "keep": "d4404a695244fdea8a9e382b33bc2177175f6a1d7c0a90ab9c162bfb51ee8c6d",
+                "remove": "4f8b3bd36d6fa7bbd1f87025f855b80bb61cc73c0eeff22e20725fd3261777ee"
+              },
+              {
+                "kind": "unicode",
+                "keep": "8677671cfa8bd2713c0179cc7c48e4fc21b46ce4ff4b4a99986bde52472f47f3",
+                "remove": "b058eac37dbb30eb46377873ad8704a894ef5fab1c7d9a98f30f151f6cf33e34"
+              },
+              {
+                "kind": "unicode",
+                "keep": "df2381e738e4178b1dd094ecec17e7fe312eee7b0880f2162c60746f467226d7",
+                "remove": "2d8c6664d3be4c18dbdb235cb6ebb0df4a247de65244f9314c884a228732ff50"
+              },
+              {
+                "kind": "unicode",
+                "keep": "bfbcfac50b9814ae0fe5e04beb8d14780c0f45de91096bc217aca84e21c03d73",
+                "remove": "f35dab9c43a4d2ae64336d760345375c9fac256ff02037e24facd6661e8a793b"
+              },
+              {
+                "kind": "unicode",
+                "keep": "14bd883c23284136e70792634c5c116ad6eff9cd284a63e47a81448f039cb010",
+                "remove": "3e357b1e57202cedb8d56aea4c195d6852587b747cd1363412ed1a50c86baccf"
+              },
+              {
+                "kind": "unicode",
+                "keep": "73b8854299cb73c1b71ebde3023df18d818a903a88ad98a1ef4cb47a5c657865",
+                "remove": "9d198ff277789ae32b20c2affcab19242baa2140f58c783aa7d788e3efe4c783"
+              },
+              {
+                "kind": "unicode",
+                "keep": "33d6cd621a8ffde37856f0bb8145e4dfa200bb86f5c50189606ea887dab737ff",
+                "remove": "79cc7346c6570fb76ae271fa3f927debcbd66633b579f019333299a49e305958"
+              },
+              {
+                "kind": "unicode",
+                "keep": "75047a01cacfc622035c9f387cfd18cb1fef9643c6c63152f4767a88d954c255",
+                "remove": "6a395dbd2f30e35cc0ffea5923f3d4f295c0a1aba3b7abcbbc347c3166ddb4b6"
+              },
+              {
+                "kind": "unicode",
+                "keep": "74e76711e25029523e1e4c7478df0159d3fa25c686ba6b2c098d0685c741a42b",
+                "remove": "9a3dc0be7b6bf9bc9b157c2e432cd070c35b43760e9ad2e75539769be0769223"
+              },
+              {
+                "kind": "unicode",
+                "keep": "558136f1558a1f4162eb1cf54cb41f6acef0c5cdcafb40c8c0cac76b72ea3072",
+                "remove": "459f223f6eb92ff0b07800f0f77a648653c7c80e0572630eca5d7aac28754dcf"
+              },
+              {
+                "kind": "unicode",
+                "keep": "a0c166b37a4dcaa1a9d569277fd3eac42de961e6dcd22c094baf450486761672",
+                "remove": "f10ed555efed4d30b47bd18fcdaa246ae6593baf6b17b3282fd777bf9695f202"
+              },
+              {
+                "kind": "unicode",
+                "keep": "7c42891d1077d0a97f062ceb2bbb77dc5fee97097d2356c115ed051d77be589f",
+                "remove": "01ed4075b93c2d2663bd54d386124e5855ff28c0322a16895984d8492d827f1c"
+              },
+              {
+                "kind": "unicode",
+                "keep": "2f95b7fd09c78d89fc22aa07dc7e4758d55467ffa4e1b83e8935a49f586e451c",
+                "remove": "f9475c52c16e8a7277409ec00971560cc2889ddda78ad1a26d2457bf6b4a5c5e"
+              },
+              {
+                "kind": "unicode",
+                "keep": "ea2efaad2bd0ff432efaf7d6194491a4df057bc202bde0a9996a2027fcd24262",
+                "remove": "649e8e651d51b5b2833e22ab551b69a8ace04c9d1097fcf7798602c47146a2af"
+              },
+              {
+                "kind": "unicode",
+                "keep": "489bef04989cc2122132b96d0c627a59a56b536124092fd63d2864f0177896a2",
+                "remove": "2b0863988b5b1a2602e6bc9765b89f01c8f2faadbdc6f883c723f0ffe48a38a3"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "1eb38f4694f6becb06cab4577e7cb0bb84473c1a3cf1fe18fb8be1870fc40434",
+                "remove": "6f16f79ca0f3bba40a1188b769ad7cd2d8e2775e3ad6d8f5524f3a7a62e4c41f"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "1eb38f4694f6becb06cab4577e7cb0bb84473c1a3cf1fe18fb8be1870fc40434",
+                "remove": "517d4c1b0b9495434ac02509c6016ec8d8d6565d5cc939eae8fe995eca86c1bb"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "771b950b158be259043bf3f8f9048d6c0fab640cd14b796c95c594d71132ddd8",
+                "remove": "68487797061b657161f1ca53cceca48271864330ebfa405d27a2e8882fc1d07f"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "771b950b158be259043bf3f8f9048d6c0fab640cd14b796c95c594d71132ddd8",
+                "remove": "9f5bdfbdb360d44e398837c0058861d150ecb2d240332587a861b4ec5c9c7ace"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "ec8d51d9cbdde4e9d4846ea983a1d78c3fca75511fa63081b0f5dbfbf24aa585",
+                "remove": "1adfe5f02fdeb0d845d42e4494fd9bf95e35b6426e1416e4a081d583ccaeecc9"
+              },
+              {
+                "kind": "conflict_suffix",
+                "keep": "ec8d51d9cbdde4e9d4846ea983a1d78c3fca75511fa63081b0f5dbfbf24aa585",
+                "remove": "63df987c81e5fa9f1fb24d545cb3bddc3a0dcdc00f8338ee586ce726aabc04e5"
+              }
+            ]
+          }
+          PLAN
+          cat > cleanup.py <<'PY'
+          """One-time, allow-listed cleanup; private paths only in encrypted journal."""
+          import collections, configparser, hashlib, json, os, pathlib, subprocess, sys, time, urllib.parse, urllib.request, urllib.error
+          
+          BASE = pathlib.Path('audit')
+          BASE.mkdir(exist_ok=True)
+          JOURNAL = BASE / 'cleanup-journal.json'
+          plan = json.load(open('plan.json'))
+          salt = plan['salt']
+          def md5(f): return (f.get('Hashes') or {}).get('md5') or (f.get('Hashes') or {}).get('MD5')
+          def fingerprint(f):
+              return hashlib.sha256((salt+'\0'+json.dumps([f['ID'],f['Path'],f['Size'],md5(f)],ensure_ascii=False,separators=(',',':'))).encode()).hexdigest()
+          def rclone(*args):
+              p = subprocess.run(['rclone',*args],capture_output=True,text=True,timeout=240)
+              if p.returncode:
+                  with open(BASE/'operations.log','a') as log: log.write(p.stderr)
+                  raise RuntimeError('rclone operation failed')
+              return p.stdout
+          files = json.loads(rclone('lsjson','gdrive:/','--recursive','--files-only','--hash','--log-file',str(BASE/'drive.log')))
+          json.dump(files,open(BASE/'before-drive.json','w'),ensure_ascii=False)
+          indexed = {fingerprint(f):f for f in files}
+          def current_token():
+              config = configparser.ConfigParser(interpolation=None)
+              config.read(pathlib.Path.home()/'.config/rclone/rclone.conf')
+              return json.loads(config['gdrive']['token'])['access_token']
+          # Refresh through the existing native client after the long inventory phase.
+          rclone('lsd','gdrive:/','--max-depth','1','--log-file',str(BASE/'drive.log'))
+          token = current_token()
+          FIELDS = 'id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime'
+          def api(fid,body=None):
+              global token
+              url='https://www.googleapis.com/drive/v3/files/'+urllib.parse.quote(fid,safe='')+'?'+urllib.parse.urlencode({'supportsAllDrives':'true','fields':FIELDS})
+              for attempt in range(2):
+                  req=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='PATCH' if body is not None else 'GET')
+                  try:
+                      with urllib.request.urlopen(req,timeout=45) as res:return json.load(res)
+                  except urllib.error.HTTPError as exc:
+                      details=exc.read().decode()
+                      with open(BASE/'google-api-errors.jsonl','a') as out:out.write(json.dumps({'id':fid,'status':exc.code,'body':details})+'\n')
+                      if exc.code==401 and attempt==0:
+                          rclone('lsd','gdrive:/','--max-depth','1','--log-file',str(BASE/'drive.log'))
+                          token=current_token()
+                          continue
+                      raise RuntimeError('Google API HTTP '+str(exc.code)) from None
+          def matches(meta,f):
+              return not meta.get('trashed') and int(meta.get('size',-1))==f['Size'] and meta.get('md5Checksum')==md5(f) and (not f.get('Hashes',{}).get('sha256') or meta.get('sha256Checksum')==f['Hashes']['sha256'])
+          def stat(path):
+              f=json.loads(rclone('lsjson','koofr:/GoogleBackup/'+path,'--stat','--hash','--log-file',str(BASE/'koofr.log')))
+              if not isinstance(f,dict):raise RuntimeError('invalid stat')
+              return f
+          def same(a,b):return a['Size']==b['Size'] and md5(a) and md5(a)==md5(b)
+          journal={'source_inventory_run':plan['source_inventory_run'],'run_id':os.environ.get('GITHUB_RUN_ID'),'entries':[]}
+          def save():
+              tmp=JOURNAL.with_suffix('.tmp');tmp.write_text(json.dumps(journal,ensure_ascii=False,indent=2));tmp.replace(JOURNAL)
+          save()
+          # A systemic API failure must stop before any mutation.
+          probe = next((indexed.get(e['remove']) for e in plan['entries'] if indexed.get(e['remove'])),None)
+          if probe is None:raise RuntimeError('No unchanged planned identity remains')
+          api(probe['ID'])
+          for entry in plan['entries']:
+              record={'entry':entry,'status':'pending'};journal['entries'].append(record);save()
               try:
-                  with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
-                  results.append({'test':label,'status':200})
-              except urllib.error.HTTPError as e:
-                  body=e.read().decode()
-                  pathlib.Path('audit/'+label+'-error.json').write_text(body)
-                  data=json.loads(body)
-                  results.append({'test':label,'status':e.code,'reason':data.get('error',{}).get('errors',[{}])[0].get('reason'),'message':data.get('error',{}).get('message') if label.startswith('root') or label=='list' else 'details encrypted'})
-          pathlib.Path('encrypted/summary.json').write_text(json.dumps(results,indent=2))
-          print(json.dumps(results))
+                  target=indexed.get(entry['remove']); keeper=indexed.get(entry['keep'])
+                  if not target or not keeper:raise RuntimeError('planned identity changed or missing')
+                  if target['Path'].startswith('Tapo-Archive/') or keeper['Path'].startswith('Tapo-Archive/'):raise RuntimeError('protected archive')
+                  if target['ID']==keeper['ID'] or not same(target,keeper):raise RuntimeError('invalid pair')
+                  record.update(target=target,keeper=keeper)
+                  tm,km=api(target['ID']),api(keeper['ID'])
+                  if not matches(tm,target) or not matches(km,keeper):raise RuntimeError('Drive content changed')
+                  if not tm.get('ownedByMe') or tm.get('shared') or not tm.get('capabilities',{}).get('canTrash'):raise RuntimeError('target shared, not owned, or cannot trash')
+                  if sorted(tm.get('parents',[]))!=sorted(km.get('parents',[])):raise RuntimeError('different actual parent folders')
+                  if entry['kind']=='unicode':
+                      k=stat(keeper['Path'])
+                      if not same(k,keeper):raise RuntimeError('Koofr retained counterpart differs')
+                  elif entry['kind']=='conflict_suffix':
+                      ktarget,kkeep=stat(target['Path']),stat(keeper['Path'])
+                      if not same(ktarget,target) or not same(kkeep,keeper):raise RuntimeError('Koofr pair changed')
+                      record['quarantine']='koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/'+target['Path']
+                  else:raise RuntimeError('unknown plan kind')
+                  record['status']='validated';save()
+                  # Persist exact restoration identities outside the bisync root before mutation.
+                  rclone('copyto',str(JOURNAL),'koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/cleanup-journal.json','--log-file',str(BASE/'koofr.log'))
+                  if not matches(api(keeper['ID']),keeper):raise RuntimeError('keeper changed before mutation')
+                  record['status']='trash_requested';save()
+                  response=api(target['ID'],{'trashed':True})
+                  if not response.get('trashed'):raise RuntimeError('trash not confirmed')
+                  record['status']='drive_trashed';save()
+                  if entry['kind']=='conflict_suffix':
+                      try:
+                          rclone('moveto','koofr:/GoogleBackup/'+target['Path'],record['quarantine'],'--immutable','--log-file',str(BASE/'koofr.log'))
+                          dest=json.loads(rclone('lsjson',record['quarantine'],'--stat','--hash','--log-file',str(BASE/'koofr.log')))
+                          if not same(dest,target):raise RuntimeError('quarantine content mismatch')
+                          record['status']='both_sides_cleaned';save()
+                      except Exception:
+                          api(target['ID'],{'trashed':False});record['status']='drive_restored_after_koofr_error';save();raise
+                  else:record['status']='drive_cleaned';save()
+                  if not api(target['ID']).get('trashed') or not matches(api(keeper['ID']),keeper):raise RuntimeError('post-check failed')
+                  record['verified']=True;save()
+              except Exception as exc:
+                  record['error']=str(exc) if isinstance(exc,RuntimeError) else type(exc).__name__
+                  if record['status'] in ('pending','validated'):record['status']='skipped'
+                  save()
+              time.sleep(.15)
+          rclone('copyto',str(JOURNAL),'koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/cleanup-journal.json','--log-file',str(BASE/'koofr.log'))
+          counts=collections.Counter(e['status'] for e in journal['entries'])
+          summary={'planned':len(plan['entries']),'statuses':dict(counts),'verified':sum(bool(e.get('verified')) for e in journal['entries']),'drive_trashed_bytes':sum(e['target']['Size'] for e in journal['entries'] if e.get('verified')),'koofr_quarantined_bytes':sum(e['target']['Size'] for e in journal['entries'] if e.get('verified') and e['entry']['kind']=='conflict_suffix'),'skipped_reasons':dict(collections.Counter(e.get('error') for e in journal['entries'] if e.get('error')))}
+          pathlib.Path('encrypted').mkdir(exist_ok=True)
+          json.dump(summary,open('encrypted/summary.json','w'),indent=2)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Recoverable allow-listed cleanup; Tapo protected.\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
+          print(json.dumps(summary))
+          if any(e.get('error') for e in journal['entries']):sys.exit(2)
           PY
+          python3 cleanup.py
       - name: Encrypt private restoration journal
         if: always()
         shell: bash
