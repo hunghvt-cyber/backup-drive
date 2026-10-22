@@ -3,32 +3,76 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: gdrive-koofr-bisync
+  cancel-in-progress: false
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 35
     steps:
       - name: Install rclone
         run: curl -fsSL https://rclone.org/install.sh | sudo bash
-      - name: Configure rclone
+      - name: Configure and inventory without publishing paths
+        shell: bash
         env:
           RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
         run: |
           set -euo pipefail
           umask 077
-          mkdir -p ~/.config/rclone
+          mkdir -p ~/.config/rclone audit encrypted
           printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > ~/.config/rclone/rclone.conf
-      - name: Inventory read-only
-        run: |
-          set -euo pipefail
-          mkdir -p audit
-          timeout 3000 rclone lsjson gdrive:/ --recursive --files-only --hash > audit/drive.json
-          timeout 3000 rclone lsjson koofr:/GoogleBackup --recursive --files-only --hash > audit/koofr.json
-          timeout 3000 rclone lsjson koofr:/GoogleBackup-Trash --recursive --files-only --hash > audit/trash.json
-      - name: Upload inventory
-        if: always()
+          failed=0
+          for spec in 'drive|gdrive:/' 'koofr|koofr:/GoogleBackup' 'trash|koofr:/GoogleBackup-Trash'; do
+            label="${spec%%|*}"
+            remote="${spec#*|}"
+            if ! timeout 500 rclone lsjson "$remote" --recursive --files-only --hash --log-file "audit/$label.log" > "audit/$label.json"; then
+              failed=1
+              echo "::error::Inventory failed for $label; no deletion permitted."
+            fi
+          done
+          echo "$failed" > audit/inventory-failed
+          python3 - <<'PY'
+          import json,collections,os
+          result={}
+          for side in ("drive","koofr","trash"):
+              try:
+                  files=json.load(open("audit/"+side+".json"))
+                  hashes=collections.defaultdict(list)
+                  for f in files:
+                      h=(f.get("Hashes") or {}).get("MD5") or (f.get("Hashes") or {}).get("md5")
+                      if h and f.get("Size",0)>0:
+                          hashes[(f["Size"],h)].append(f)
+                  groups=[v for v in hashes.values() if len(v)>1]
+                  result[side]={"files":len(files),"bytes":sum(max(0,f.get("Size",0)) for f in files),"duplicate_content_groups":len(groups),"extra_copies":sum(len(g)-1 for g in groups),"potential_extra_bytes":sum((len(g)-1)*g[0]["Size"] for g in groups)}
+              except Exception:
+                  result[side]={"status":"incomplete"}
+          result["inventory_failed"]=open("audit/inventory-failed").read().strip()!="0"
+          json.dump(result,open("encrypted/summary.json","w"),indent=2)
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("Read-only inventory. No data changed. Content matches are candidates, not automatic deletion decisions.\n\n")
+              out.write("```json\n"+json.dumps(result,indent=2)+"\n```\n")
+          PY
+          cat > audit-public.pem <<'KEY'
+          -----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAt8vFR2TO5Gtjfyvj2Qxm
+          MTr4wP/p2VeBEB1o3hWdkKvDoLvAN+dDvTQC7NqkJKJzA/BCP2Rr5UByqLFMWIcx
+          nraLOSiiQvtFxFahK7N+w7Gsopru+VLMh2YCW2CsRx6t4u6qNowuh5QbfYV9uQd/
+          urT6ho8FADYCH5YD+b5P+QPQKya8VDYW9WhP5X8m27nXwCrx20XTy+GqB/kHKsS1
+          aYxKJoJU9LX5D/AE4/0+yzTCszDoEkuD3M+p41dQc2yM+RfLCW97Y8+Ad3QmAX8D
+          0EYPExyfRrUtl7kH40sRqx2ZbnSNp1zWbL+b/Nrvv85AKxaRij5/ux0SpNoI8Sou
+          uVprzTSiWEfU4oR8/OQayOwoQqsJB2M5/W931rWEpwNyV1NyO1iIHQopqesX9VZe
+          3EYx/lrcuMLBO6yuaECVhoCcuq3aSFOoTlnYPabWZfBg9dxKA+UYVllMz1ucJkc6
+          u97EccC5qohN7TeAW1tAX4ZAVhHxYz30eG8jMxnWIRYLAgMBAAE=
+          -----END PUBLIC KEY-----
+          KEY
+          tar -czf inventory.tar.gz audit
+          openssl rand -hex 32 > session-key
+          openssl enc -aes-256-cbc -salt -pbkdf2 -in inventory.tar.gz -out encrypted/inventory.enc -pass file:session-key
+          openssl pkeyutl -encrypt -pubin -inkey audit-public.pem -in session-key -out encrypted/session-key.enc -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+      - name: Upload encrypted inventory only
         uses: actions/upload-artifact@v4
         with:
-          name: duplicate-audit
-          path: audit/
+          name: encrypted-duplicate-audit-${{ github.run_id }}
+          path: encrypted/
           retention-days: 7
