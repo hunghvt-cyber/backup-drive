@@ -28,13 +28,17 @@ jobs:
           set -euo pipefail
           umask 077
           rclone lsd gdrive:/ --max-depth 1 --log-file audit/drive.log > audit/root-folders.txt
+          rclone cat koofr:/CloudDedupe-Quarantine/39808454335/cleanup-journal.json --log-file audit/koofr.log > audit/previous-journal.json
           python3 - <<'PY'
           import configparser,json,pathlib,urllib.request,urllib.error
           c=configparser.ConfigParser(interpolation=None)
           c.read(pathlib.Path.home()/'.config/rclone/rclone.conf')
           t=json.loads(c['gdrive']['token'])
+          target=json.loads(pathlib.Path('audit/previous-journal.json').read_text())['entries'][0]['target']['ID']
           results=[]
           for label,url in [
+              ('target_minimal','https://www.googleapis.com/drive/v3/files/'+target+'?fields=id&supportsAllDrives=true'),
+              ('target_metadata','https://www.googleapis.com/drive/v3/files/'+target+'?fields=id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime&supportsAllDrives=true'),
               ('list','https://www.googleapis.com/drive/v3/files?pageSize=1&fields=files(id)'),
               ('root_metadata','https://www.googleapis.com/drive/v3/files/root?fields=id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime&supportsAllDrives=true')]:
               req=urllib.request.Request(url,headers={'Authorization':'Bearer '+t['access_token']})
@@ -45,7 +49,7 @@ jobs:
                   body=e.read().decode()
                   pathlib.Path('audit/'+label+'-error.json').write_text(body)
                   data=json.loads(body)
-                  results.append({'test':label,'status':e.code,'reason':data.get('error',{}).get('errors',[{}])[0].get('reason'),'message':data.get('error',{}).get('message')})
+                  results.append({'test':label,'status':e.code,'reason':data.get('error',{}).get('errors',[{}])[0].get('reason'),'message':data.get('error',{}).get('message') if label.startswith('root') or label=='list' else 'details encrypted'})
           pathlib.Path('encrypted/summary.json').write_text(json.dumps(results,indent=2))
           print(json.dumps(results))
           PY
