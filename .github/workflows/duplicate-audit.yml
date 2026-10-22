@@ -278,7 +278,7 @@ jobs:
                   with open(BASE/'operations.log','a') as log: log.write(p.stderr)
                   raise RuntimeError('rclone operation failed')
               return p.stdout
-          files = json.loads(rclone('lsjson','gdrive:/','--recursive','--files-only','--hash','--log-file',str(BASE/'drive.log')))
+          files = json.loads(rclone('lsjson','gdrive:/','--recursive','--files-only','--hash','--fast-list','--tpslimit','3','--tpslimit-burst','3','--log-file',str(BASE/'drive.log')))
           json.dump(files,open(BASE/'before-drive.json','w'),ensure_ascii=False)
           indexed = {fingerprint(f):f for f in files}
           def current_token():
@@ -292,18 +292,25 @@ jobs:
           def api(fid,body=None):
               global token
               url='https://www.googleapis.com/drive/v3/files/'+urllib.parse.quote(fid,safe='')+'?'+urllib.parse.urlencode({'supportsAllDrives':'true','fields':FIELDS})
-              for attempt in range(2):
+              for attempt in range(6):
+                  time.sleep(1)
                   req=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='PATCH' if body is not None else 'GET')
                   try:
                       with urllib.request.urlopen(req,timeout=45) as res:return json.load(res)
                   except urllib.error.HTTPError as exc:
                       details=exc.read().decode()
                       with open(BASE/'google-api-errors.jsonl','a') as out:out.write(json.dumps({'id':fid,'status':exc.code,'body':details})+'\n')
+                      try:reason=json.loads(details).get('error',{}).get('errors',[{}])[0].get('reason','')
+                      except Exception:reason=''
+                      retryable=exc.code in (429,500,502,503,504) or (exc.code==403 and reason in ('rateLimitExceeded','userRateLimitExceeded'))
+                      if retryable and attempt<5:
+                          time.sleep(min(2**(attempt+1),32))
+                          continue
                       if exc.code==401 and attempt==0:
                           rclone('lsd','gdrive:/','--max-depth','1','--log-file',str(BASE/'drive.log'))
                           token=current_token()
                           continue
-                      raise RuntimeError('Google API HTTP '+str(exc.code)) from None
+                      raise RuntimeError('Google API HTTP '+str(exc.code)+' '+reason) from None
           def matches(meta,f):
               return not meta.get('trashed') and int(meta.get('size',-1))==f['Size'] and meta.get('md5Checksum')==md5(f) and (not f.get('Hashes',{}).get('sha256') or meta.get('sha256Checksum')==f['Hashes']['sha256'])
           def stat(path):
@@ -358,10 +365,13 @@ jobs:
                   else:record['status']='drive_cleaned';save()
                   if not api(target['ID']).get('trashed') or not matches(api(keeper['ID']),keeper):raise RuntimeError('post-check failed')
                   record['verified']=True;save()
+                  print(json.dumps({'processed':len(journal['entries']),'verified':sum(bool(e.get('verified')) for e in journal['entries'])}),flush=True)
               except Exception as exc:
                   record['error']=str(exc) if isinstance(exc,RuntimeError) else type(exc).__name__
                   if record['status'] in ('pending','validated'):record['status']='skipped'
                   save()
+                  if record.get('error','').startswith('Google API HTTP'):
+                      break
               time.sleep(.15)
           rclone('copyto',str(JOURNAL),'koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/cleanup-journal.json','--log-file',str(BASE/'koofr.log'))
           counts=collections.Counter(e['status'] for e in journal['entries'])
