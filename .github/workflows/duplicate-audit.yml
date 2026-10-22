@@ -1,4 +1,4 @@
-name: Read-only duplicate audit
+name: Verified duplicate cleanup (recoverable)
 on:
   workflow_dispatch:
 permissions:
