@@ -38,9 +38,9 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 ## Lịch chạy và an toàn
 
 - Đồng bộ hằng ngày lúc **02:00 giờ Việt Nam** theo [workflow](.github/workflows/bisync.yml).
-- **Tự động:** Tối đa **35 phút/job**, gồm **29 phút** cho Rclone Bisync và thời gian dự phòng để dừng có kiểm soát, lưu state/cache, artifact và báo cáo. Không dùng hết 5h30 mỗi ngày vì GitHub Actions private có hạn mức miễn phí theo **tháng**.
+- **Tự động:** Tối đa **35 phút/job**, gồm **29 phút** cho Rclone Bisync và thời gian dự phòng để dừng có kiểm soát, lưu state/cache, artifact và báo cáo. Đây là giới hạn cấu hình đang giữ; không suy từ nó rằng repo hiện còn private.
 - **Khôi phục thủ công khi thật cần thiết:** Actions → Run workflow → `extended_budget=true` để cho phép lại **330 phút/job, 300 phút rclone**. Tùy chọn này không tự bật và có nguy cơ tiêu tốn hạn mức miễn phí; `resync/reset` chỉ chọn khi hiểu rõ hậu quả.
-- Ngân sách chung của Drive + Google Photos: [FREE_TIER_BUDGET.md](https://github.com/hunghvt-cyber/google-photos-koofr/blob/main/docs/FREE_TIER_BUDGET.md). Lịch Photos Daily giữ hằng ngày; Historical Backfill chạy 4 ngày/tuần để ít tốn overhead Chrome hơn.
+- Nguồn duy nhất cho lịch/ngân sách Drive + Photos: [FREE_TIER_BUDGET.md](https://github.com/hunghvt-cyber/google-photos-koofr/blob/main/docs/FREE_TIER_BUDGET.md). Không chép lịch Photos sang repo Drive; cron trong workflow từng repo là nguồn thực thi.
 - Duy trì trạng thái Bisync giữa các lượt chạy; resync ban đầu chưa hoàn tất sẽ tiếp tục ở lượt sau.
 - `--max-delete 25`, `--backup-dir2`, `--recover`, `--resilient`, `--checksum`.
 - File không đồng bộ được sẽ được ghi nhận trong danh sách bỏ qua; không nên coi là đã backup.
@@ -49,15 +49,16 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 
 Vào [Actions → Two-Way Sync](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml), mở lượt chạy mới nhất, xem **Summary** và tải artifact `bisync-report-<run_id>` để đọc `bisync.log` và danh sách file bỏ qua.
 
-## Homepage backup report (GAS/Drive hoặc Blob)
+## Báo cáo Homepage qua GAS/Drive
 
-Workflow tạo JSON tóm tắt đã lọc từ kết quả hiện có; việc phát báo cáo là best-effort, không thay kết quả backup và không thay dữ liệu/state.
+Chỉ xuất aggregate đã lọc; không coi publish thành công là backup media thành công.
 
-- Actions variable `REPORT_BACKEND=gas-drive`: dùng variable `REPORT_GAS_URL` và secret `REPORT_GAS_KEY`; chạy `scripts/publish_gas_report.py`.
-- Khi `REPORT_BACKEND` chưa đặt, source workflow hiện mặc định `blob`; nhánh này dùng `BLOB_READ_WRITE_TOKEN` và `scripts/publish_blob_report.py`. Không có key thì bỏ qua với notice. Đây là lựa chọn tương thích, không chứng minh Homepage đang đọc Blob.
-- Homepage hiện chọn API GAS/Drive. Ngày 19/10/2026, hai feed `source=gdrive|gphotos` trả **503 NO_REPORT** trong lượt kiểm kê. Cần xác minh variable, metadata key, lần publish và GAS HEAD/ack trước khi coi chuyển feed hoàn tất. Thiếu feed không đồng nghĩa backup media thất bại.
-- Không đưa raw logs, tên file, cookie hoặc credentials vào báo cáo. Không đổi lịch, filter, reset/resync hoặc token để sửa câu chữ tài liệu.
+- Source workflow mặc định `REPORT_BACKEND=gas-drive`; dùng variable
+  `REPORT_GAS_URL` và secret `REPORT_GAS_KEY`. Nhánh Blob chỉ còn lựa chọn legacy
+  rõ ràng, không phải mặc định hoặc fallback của Homepage.
+- Hai feed đã phục hồi HTTP 200 ngày 20/10; đây là bằng chứng có thời điểm,
+  chưa phải phép đo mới ngày 22/10. Xem [hồ sơ vận hành](docs/REPORTS-GAS.md).
+- Không sửa engine, filter, state, lịch, reset/resync hoặc media để sửa báo cáo.
 
-Nguồn hiện hành: [Homepage OPERATIONS](https://github.com/hunghvt-cyber/Homepage-nas/blob/main/docs/OPERATIONS.md).
-Hồ sơ schema/lịch sử: [BACKUP-REPORTING.md](https://github.com/hunghvt-cyber/Homepage-nas/blob/main/docs/BACKUP-REPORTING.md).
-Bản đồ quản trị: [0219nas-aio/SYSTEMS-20261019.md](https://github.com/hunghvt-cyber/0219nas-aio/blob/main/SYSTEMS-20261019.md).
+Nguồn tích hợp/API: [Homepage OPERATIONS](https://github.com/hunghvt-cyber/Homepage-nas/blob/main/docs/OPERATIONS.md).
+Bản đồ tổng thể: [NAS AIO](https://github.com/hunghvt-cyber/0219nas-aio).
