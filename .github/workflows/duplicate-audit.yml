@@ -1,4 +1,4 @@
-name: Verify duplicate cleanup (read-only)
+name: Reclean 15 regenerated duplicates (recoverable)
 on:
   workflow_dispatch:
 permissions:
@@ -22,80 +22,107 @@ jobs:
           umask 077
           mkdir -p ~/.config/rclone audit encrypted
           printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > ~/.config/rclone/rclone.conf
-      - name: Read-only post-cleanup and sharing verification
+      - name: Revalidate fixed 15 IDs, trash duplicates, verify keepers
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          cat > verify.py <<'PY'
-          import collections, configparser, json, os, pathlib, subprocess, time, unicodedata, urllib.request, urllib.parse, urllib.error
+          cat > reclean-plan.json <<'JSON'
+          {"salt": "4525ed22c226bd23c25ff74bffb73c7cd46a02b4e605b912a377e56bc3169d1b", "targets": ["d91fa07f0d4ebb4edf5dc7ca41c754cc28fda0e99e0ea84ddd009f99b88fcaef", "1caa3f2ad69d0a49b19287781e983f78b9557c4ba9be737bcc334ba29f9a9e41", "a6917bb05ec4d6ea84cb254e9f1df9bc2c73162d649d08a55e2f9afd38229627", "7bf7a08150cd788e9b5c947a51b4237de9fa22c136e51e9757336280abd6b260", "aacceddf27454c60eefebc101219cbf7fb275a2ef03ab1282d647a8e91f77507", "a369fdec1b003688d596c49e917476a01b83c0fceb0f4bacccc206e144fe22f6", "4816ae6698a3b3d9cf35f9939697c19f94390417828e27712362ba397ff14c75", "6446eb9094a8a044e3e732d16d27a2bf07862cafe975f89e1ae75389ef69aff6", "9984b2840d8845b987c3fdf9c90f0d6c269332a5dc389617fb83ab94bbbe549c", "0e60458227210146e319ae6ae75095a93b0dfa1817ccfb4ff494b0d89652d2bb", "c6d10a78fb96b79a70be14826774b0557162d417fd655b7e7dd02bb10a715c63", "8db282e7833e71b716434c93997bff49792181f6d6e1efc428b388bf17f9b439", "2b6cd6f75504e41fe86a4c2169aa8fb8a40dd60783ec0004c92dda75ed7e45d5", "a0f8be38b50c2e575acb106e7f3de06bc8fec9e33ae0dd79a5e613d2aa9d9bff", "39fcdf0b2bcb39c307242bef676fd5e6e1623ce55ad00435f959fd990114456b"]}
+          JSON
+          cat > reclean.py <<'PY'
+          import collections, configparser, hashlib, json, os, pathlib, subprocess, time, unicodedata, urllib.request, urllib.parse, urllib.error
           base=pathlib.Path('audit');base.mkdir(exist_ok=True)
+          plan=json.load(open('reclean-plan.json'))
           def rc(*args):
               p=subprocess.run(['rclone',*args],capture_output=True,text=True,timeout=180)
               if p.returncode:
                   with open(base/'rclone.log','a') as out:out.write(p.stderr)
-                  raise RuntimeError('rclone read failed')
+                  raise RuntimeError('rclone operation failed')
               return p.stdout
           rc('lsd','gdrive:/','--max-depth','1','--log-file',str(base/'rclone.log'))
           c=configparser.ConfigParser(interpolation=None);c.read(pathlib.Path.home()/'.config/rclone/rclone.conf')
           token=json.loads(c['gdrive']['token'])['access_token']
-          j=json.loads(rc('cat','koofr:/CloudDedupe-Quarantine/39811260319/cleanup-journal.json','--log-file',str(base/'rclone.log')))
-          json.dump(j,open(base/'previous-journal.json','w'),ensure_ascii=False)
-          def request(path,params):
+          old=json.loads(rc('cat','koofr:/CloudDedupe-Quarantine/39811260319/cleanup-journal.json','--log-file',str(base/'rclone.log')))
+          FIELDS='id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime'
+          def request(path,params,body=None):
               url='https://www.googleapis.com/drive/v3/'+path+'?'+urllib.parse.urlencode(params)
               for attempt in range(6):
                   time.sleep(1)
+                  req=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='PATCH' if body is not None else 'GET')
                   try:
-                      with urllib.request.urlopen(urllib.request.Request(url,headers={'Authorization':'Bearer '+token}),timeout=40) as res:return json.load(res)
+                      with urllib.request.urlopen(req,timeout=40) as res:return json.load(res)
                   except urllib.error.HTTPError as e:
-                      body=e.read().decode()
-                      with open(base/'api-errors.jsonl','a') as out:out.write(json.dumps({'status':e.code,'body':body})+'\n')
-                      try:reason=json.loads(body).get('error',{}).get('errors',[{}])[0].get('reason','')
+                      body_text=e.read().decode()
+                      with open(base/'api-errors.jsonl','a') as out:out.write(json.dumps({'status':e.code,'body':body_text})+'\n')
+                      try:reason=json.loads(body_text).get('error',{}).get('errors',[{}])[0].get('reason','')
                       except Exception:reason=''
                       if attempt<5 and (e.code in (429,500,502,503,504) or reason in ('rateLimitExceeded','userRateLimitExceeded')):
                           time.sleep(min(2**(attempt+1),32));continue
                       raise RuntimeError('Google API HTTP '+str(e.code)+' '+reason) from None
-          def meta(fid):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':'id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash)','supportsAllDrives':'true'})
-          def h(f):return f.get('Hashes',{}).get('md5') or f.get('Hashes',{}).get('MD5')
-          def matches(m,f):return not m.get('trashed') and int(m.get('size',-1))==f['Size'] and m.get('md5Checksum')==h(f) and (not f.get('Hashes',{}).get('sha256') or f['Hashes']['sha256']==m.get('sha256Checksum'))
-          parents={}
+          def meta(fid):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':FIELDS,'supportsAllDrives':'true'})
+          def trash(fid):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':FIELDS,'supportsAllDrives':'true'},{'trashed':True})
+          def fp(m):
+              values=[m['id'],m['name'],sorted(m.get('parents',[])),str(m['size']),m.get('md5Checksum'),m.get('sha256Checksum'),m.get('createdTime')]
+              return hashlib.sha256((plan['salt']+'\0'+json.dumps(values,ensure_ascii=False,separators=(',',':'))).encode()).hexdigest()
+          def md5(f):return f.get('Hashes',{}).get('md5') or f.get('Hashes',{}).get('MD5')
+          def same(a,b):return int(a.get('size',-1))==int(b.get('size',-2)) and bool(a.get('md5Checksum')) and a.get('md5Checksum')==b.get('md5Checksum') and bool(a.get('sha256Checksum')) and a.get('sha256Checksum')==b.get('sha256Checksum')
+          def keeper_ok(m,f):return not m.get('trashed') and int(m.get('size',-1))==f['Size'] and m.get('md5Checksum')==md5(f) and (not f.get('Hashes',{}).get('sha256') or m.get('sha256Checksum')==f['Hashes']['sha256'])
+          def protected(m):return not m.get('ownedByMe') or m.get('shared') or not m.get('capabilities',{}).get('canTrash')
+          def norm(s):return unicodedata.normalize('NFC',s)
           def children(pid):
-              if pid not in parents:
-                  values=[];page=None
-                  while True:
-                      p={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files(id,name,size,md5Checksum,sha256Checksum,createdTime,modifiedTime,parents,shared,ownedByMe,capabilities(canTrash))','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
-                      if page:p['pageToken']=page
-                      r=request('files',p);values+=r.get('files',[]);page=r.get('nextPageToken')
-                      if not page:break
-                  parents[pid]=values
-              return parents[pid]
-          result={'entries':[],'source_run':39811260319}
-          for e in j['entries']:
-              if not e.get('verified'): continue
-              r={'previous_status':e['status'],'target':e['target'],'keeper':e['keeper']}
-              try:
-                  tm=meta(e['target']['ID']);km=meta(e['keeper']['ID']);r.update(target_metadata=tm,keeper_metadata=km)
-                  if e.get('verified'):
-                      candidates=[]
-                      for pid in km.get('parents',[]):
-                          candidates.extend(f for f in children(pid) if unicodedata.normalize('NFC',f['name'])==unicodedata.normalize('NFC',km['name']))
-                      k=json.loads(rc('lsjson','koofr:/GoogleBackup/'+e['keeper']['Path'],'--stat','--hash','--log-file',str(base/'rclone.log')))
-                      r['active_candidates']=candidates
-                      r['koofr_keeper']=k
-                      r['active_normalized_name_matches']=len(candidates)
-                      r['pass']=bool(tm.get('trashed') and matches(km,e['keeper']) and len(candidates)==1 and k['Size']==e['keeper']['Size'] and h(k)==h(e['keeper']))
-                  else:
-                      r['protection']={'owned':tm.get('ownedByMe'),'shared':tm.get('shared'),'can_trash':tm.get('capabilities',{}).get('canTrash')}
-              except Exception as exc:r['error']=str(exc) if isinstance(exc,RuntimeError) else type(exc).__name__
-              result['entries'].append(r)
-          json.dump(result,open(base/'verification.json','w'),ensure_ascii=False,indent=2)
-          summary={'previously_cleaned':sum(e.get('verified',False) for e in j['entries']),'postchecks_pass':sum(e.get('pass',False) for e in result['entries']),'postchecks_fail':sum(e['previous_status']=='drive_cleaned' and not e.get('pass',False) for e in result['entries']),'protected':dict(collections.Counter(json.dumps(e.get('protection'),sort_keys=True) for e in result['entries'] if e.get('protection'))),'errors':dict(collections.Counter(e['error'] for e in result['entries'] if e.get('error')))}
+              result=[];page=None
+              while True:
+                  params={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files('+FIELDS+')','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
+                  if page:params['pageToken']=page
+                  r=request('files',params);result+=r.get('files',[]);page=r.get('nextPageToken')
+                  if not page:return result
+          j={'source_verification':39898010755,'run_id':os.environ['GITHUB_RUN_ID'],'entries':[],'postchecks':[]}
+          allowed=set(plan['targets']);seen=set();keepers=[]
+          for e in old['entries']:
+              if not e.get('verified'):continue
+              f=e['keeper'];km=meta(f['ID'])
+              if not keeper_ok(km,f) or len(km.get('parents',[]))!=1:raise RuntimeError('Keeper preflight changed')
+              k=json.loads(rc('lsjson','koofr:/GoogleBackup/'+f['Path'],'--stat','--hash','--log-file',str(base/'rclone.log')))
+              if k['Size']!=f['Size'] or md5(k)!=md5(f):raise RuntimeError('Koofr keeper changed')
+              keepers.append({'file':f,'metadata':km,'koofr':k})
+              for m in children(km['parents'][0]):
+                  if m['id']==km['id'] or norm(m['name'])!=norm(km['name']):continue
+                  key=fp(m)
+                  if key not in allowed:continue
+                  if protected(m) or not same(m,km) or m.get('parents')!=km.get('parents'):raise RuntimeError('Target preflight protection or content change')
+                  if key in seen:raise RuntimeError('Repeated allow-list target')
+                  seen.add(key);j['entries'].append({'target':m,'keeper':km,'status':'planned'})
+          if seen!=allowed or len(j['entries'])!=15 or sum(int(e['target']['size']) for e in j['entries'])!=30217626:raise RuntimeError('Fixed allow-list no longer matches; no mutation')
+          j['keepers']=keepers
+          journal=base/'cleanup-journal.json'
+          remote='koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/cleanup-journal.json'
+          def save(remote_copy=False):
+              json.dump(j,open(journal,'w'),ensure_ascii=False,indent=2)
+              if remote_copy:rc('copyto',str(journal),remote,'--log-file',str(base/'rclone.log'))
+          save(True)
+          try:
+              for e in j['entries']:
+                  t=meta(e['target']['id']);k=meta(e['keeper']['id'])
+                  if fp(t)!=fp(e['target']) or t.get('trashed') or protected(t) or not same(t,k) or k.get('trashed') or k.get('parents')!=e['keeper'].get('parents') or t.get('parents')!=k.get('parents'):raise RuntimeError('Target or keeper changed before trash')
+                  e['status']='trash_requested';save()
+                  trash(t['id'])
+                  tm=meta(t['id']);km=meta(k['id'])
+                  if not tm.get('trashed') or km.get('trashed') or not same(km,e['keeper']):raise RuntimeError('Immediate trash postcheck failed')
+                  e['status']='trashed_verified';save()
+                  print('Verified trashed '+str(sum(x['status']=='trashed_verified' for x in j['entries']))+'/15',flush=True)
+              for e in keepers:
+                  f=e['file'];km=meta(f['ID']);live=[x for x in children(km['parents'][0]) if norm(x['name'])==norm(km['name'])]
+                  passed=keeper_ok(km,f) and len(live)==1 and live[0]['id']==km['id']
+                  j['postchecks'].append({'keeper_id':km['id'],'live_normalized_name_matches':len(live),'pass':passed})
+          finally:save(True)
+          summary={'allowlisted':15,'trashed_verified':sum(e['status']=='trashed_verified' for e in j['entries']),'trashed_bytes':sum(int(e['target']['size']) for e in j['entries'] if e['status']=='trashed_verified'),'keeper_groups_checked':len(j['postchecks']),'keeper_groups_clean':sum(e['pass'] for e in j['postchecks']),'shared_candidates_untouched':29,'koofr_files_moved':0}
           pathlib.Path('encrypted').mkdir(exist_ok=True);json.dump(summary,open('encrypted/summary.json','w'),indent=2)
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Post-cleanup verification, read-only\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Recoverable cleanup after FolderSync setting change\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
           print(json.dumps(summary))
-          if summary['postchecks_fail'] or summary['errors']:raise SystemExit(2)
+          if summary['trashed_verified']!=15 or summary['keeper_groups_clean']!=16:raise SystemExit(2)
           PY
-          python3 verify.py
+          python3 reclean.py
       - name: Encrypt private restoration journal
         if: always()
         shell: bash
