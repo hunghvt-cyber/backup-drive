@@ -63,7 +63,7 @@ jobs:
               if pid not in parents:
                   values=[];page=None
                   while True:
-                      p={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files(id,name,size,md5Checksum)','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
+                      p={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files(id,name,size,md5Checksum,sha256Checksum,createdTime,modifiedTime,parents,shared,ownedByMe,capabilities(canTrash))','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
                       if page:p['pageToken']=page
                       r=request('files',p);values+=r.get('files',[]);page=r.get('nextPageToken')
                       if not page:break
@@ -71,6 +71,7 @@ jobs:
               return parents[pid]
           result={'entries':[],'source_run':39811260319}
           for e in j['entries']:
+              if not e.get('verified'): continue
               r={'previous_status':e['status'],'target':e['target'],'keeper':e['keeper']}
               try:
                   tm=meta(e['target']['ID']);km=meta(e['keeper']['ID']);r.update(target_metadata=tm,keeper_metadata=km)
@@ -79,6 +80,8 @@ jobs:
                       for pid in km.get('parents',[]):
                           candidates.extend(f for f in children(pid) if unicodedata.normalize('NFC',f['name'])==unicodedata.normalize('NFC',km['name']))
                       k=json.loads(rc('lsjson','koofr:/GoogleBackup/'+e['keeper']['Path'],'--stat','--hash','--log-file',str(base/'rclone.log')))
+                      r['active_candidates']=candidates
+                      r['koofr_keeper']=k
                       r['active_normalized_name_matches']=len(candidates)
                       r['pass']=bool(tm.get('trashed') and matches(km,e['keeper']) and len(candidates)==1 and k['Size']==e['keeper']['Size'] and h(k)==h(e['keeper']))
                   else:
