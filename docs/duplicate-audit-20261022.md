@@ -72,3 +72,8 @@ The scheduled bisync run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr
 ## Remaining blocker
 
 Identify the separate writer responsible for the 03:01 and 04:00–04:01 Vietnam uploads, then coordinate it before removing the 15 regenerated Unicode duplicates. The 29 shared candidates (including all six linked Koofr cleanup pairs) remain protected. Production sync workflow, schedule, secrets, and baseline/cache remain unchanged.
+
+
+## FolderSync retest cleanup — 2026-10-23
+
+The operator reported one-way S25 Ultra backups with FolderSync and enabled Only resync source files if modified. Run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39911255393 then revalidated the fixed 15 regenerated objects, their retained counterparts and Koofr content. It persisted restoration identities outside the sync root, moved 15 objects (30,217,626 bytes) to Drive Trash, and verified all 16 keeper groups each have exactly one active normalized-name object. All 29 shared candidates remained untouched; zero Koofr files were moved. The maintenance workflow was restored to read-only verification. Production sync, schedule, credentials and baseline/cache were unchanged. The operator will now run both FolderSync folderpairs; prevention of recurrence is pending that retest.
