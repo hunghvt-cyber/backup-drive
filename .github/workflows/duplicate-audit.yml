@@ -1,4 +1,4 @@
-name: Verify duplicate cleanup (read-only)
+name: Preserve FolderSync keepers (recoverable cleanup)
 on:
   workflow_dispatch:
 permissions:
@@ -22,80 +22,125 @@ jobs:
           umask 077
           mkdir -p ~/.config/rclone audit encrypted
           printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > ~/.config/rclone/rclone.conf
-      - name: Read-only post-cleanup and sharing verification
+      - name: Preserve fixed phone-created IDs and trash old duplicate IDs
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          cat > verify.py <<'PY'
-          import collections, configparser, json, os, pathlib, subprocess, time, unicodedata, urllib.request, urllib.parse, urllib.error
+          cat > switch-plan.json <<'JSON'
+          {"salt": "4ea4e66c842e6abafd01317076b4d627af11138f9dbdd568cbfe1b0230b6bc57", "pairs": {"772226b6dee7448fc1a82d8b62eaa68d2175f8c9f559289b8cba983a3ed1b41c": "ff51bd84bb0593127df8e671b807fcb7be3e3cf31c740ff59ce2d12f9106771a", "800596f266ebaba53633bed22a53895f2b847cb09c215d4b8c691f4ba2d6fd83": "5659687f9bcd223ec3423a371b65e28db26b9fabfb58efa1aa60feecf6797b2d", "a9872478aa5054f41a5aa1d3071ba645e863365bf8755a4d4551a9d8ff3708c3": "55105479f0f869e65b748e7419010bb3ca6e5de2291d8db8e9d65ce82af76689", "4358d9a55e50969018b05c919717850b738612b7c21a09a414b3c5be43a96b00": "41d81bae04ba4d63dbd0de1e0f4b65d6c808cf54769b052ab669f92991e46986", "10cc4f0f5e36ac3b12b23f7ee0e2802b7a94282cb8ce0a19f18e3d4cc3b48b70": "7dc7de5293c8248aee9d123ca781247be36d5097d7e8da98ca539f2044b86289", "9c6db7e5f600d602acf06393e756afd84045d78eb46ef2358ed8a3a4163bbf5b": "042fbde126426cbf8abcad80b34f283e7eebbf0ab2b3064be66b25ababeccd8d", "cb1994acbd8ab8403ace9c82e1b9945381672e7e8fdaece2fd71ca45c7ce3a78": "77d0c5b24f314e9b3b9f0fb2cd1871645893709820612123ecc659532bc68cb8", "467852e05bbf91a0cb6a6dbfcede39753a4c6c97c00be6e04b1ac2087b9fb997": "a3615110f89e03b0c465e65db723815ac8da9df5133f98c02ad79d6d340990fb", "021240ff04192102b4122ab87228aab748a5aca59a97b8ecb59108334e8e7294": "bc0f6982a32dff78855e34a3a023398398bfbc8330e6cb6b5989c65eb0046a5f", "39e384a4963063e3c58e4909b7bb57cb9c38c4478d6951ef62d1399c324ad86b": "02bbbe993dc4fd2d7bdf11a5debfd8f007088b0c850c90b4a860437537458858", "7bfdd641782b5b53004412daa5c06c9996d8cc5ba53e0c6b53177e4e4e3fdc77": "f31bde264b54fda50a5ee415406153f3d888548eca10bfd23186d500ab5ce635", "c6979dafc607941a2b5a50ed9ba4274607055b8c474e9654090d68e3f472af38": "3cf68258a0f77b4df863e4ce4b2ea9c9d35d192178fe5d7034b6df1ce8f0e38f", "d153eee29b974c6ec6d4dab641dd2446ff325d3690427b39043e80347dcd9ef2": "c790601ce86d413928be6da5c1d07cfc81bf57fed65aa648da60b58c21366271", "07dcba1813847247b1a6368d0ea2d44d1b447e8923703d36a62de43bcb1b971d": "9d3362a6205d212ed00303f35a420d837abf15f55aaf7467336953b096f8d51e", "bf16d44baedbce08944405b6a241b191294c2dc4d250ea1400f3cbb78dffd6e0": "ea7fedf28a077e191794c789af1dac0863ae27d13b48e2e831323589a311e321"}}
+          JSON
+          cat > switch-keepers.py <<'PY'
+          import collections, configparser, copy, hashlib, json, os, pathlib, posixpath, subprocess, time, unicodedata, urllib.request, urllib.parse, urllib.error
           base=pathlib.Path('audit');base.mkdir(exist_ok=True)
+          plan=json.load(open('switch-plan.json'))
           def rc(*args):
               p=subprocess.run(['rclone',*args],capture_output=True,text=True,timeout=180)
               if p.returncode:
                   with open(base/'rclone.log','a') as out:out.write(p.stderr)
-                  raise RuntimeError('rclone read failed')
+                  raise RuntimeError('rclone operation failed')
               return p.stdout
           rc('lsd','gdrive:/','--max-depth','1','--log-file',str(base/'rclone.log'))
           c=configparser.ConfigParser(interpolation=None);c.read(pathlib.Path.home()/'.config/rclone/rclone.conf')
           token=json.loads(c['gdrive']['token'])['access_token']
-          j=json.loads(rc('cat','koofr:/CloudDedupe-Quarantine/39811260319/cleanup-journal.json','--log-file',str(base/'rclone.log')))
-          json.dump(j,open(base/'previous-journal.json','w'),ensure_ascii=False)
-          def request(path,params):
+          original=json.loads(rc('cat','koofr:/CloudDedupe-Quarantine/39811260319/cleanup-journal.json','--log-file',str(base/'rclone.log')))
+          FIELDS='id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash),createdTime'
+          def request(path,params,body=None):
               url='https://www.googleapis.com/drive/v3/'+path+'?'+urllib.parse.urlencode(params)
               for attempt in range(6):
                   time.sleep(1)
+                  req=urllib.request.Request(url,data=json.dumps(body).encode() if body is not None else None,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='PATCH' if body is not None else 'GET')
                   try:
-                      with urllib.request.urlopen(urllib.request.Request(url,headers={'Authorization':'Bearer '+token}),timeout=40) as res:return json.load(res)
-                  except urllib.error.HTTPError as e:
-                      body=e.read().decode()
-                      with open(base/'api-errors.jsonl','a') as out:out.write(json.dumps({'status':e.code,'body':body})+'\n')
-                      try:reason=json.loads(body).get('error',{}).get('errors',[{}])[0].get('reason','')
+                      with urllib.request.urlopen(req,timeout=40) as res:return json.load(res)
+                  except urllib.error.HTTPError as exc:
+                      detail=exc.read().decode()
+                      with open(base/'api-errors.jsonl','a') as out:out.write(json.dumps({'status':exc.code,'body':detail})+'\n')
+                      try:reason=json.loads(detail).get('error',{}).get('errors',[{}])[0].get('reason','')
                       except Exception:reason=''
-                      if attempt<5 and (e.code in (429,500,502,503,504) or reason in ('rateLimitExceeded','userRateLimitExceeded')):
+                      if attempt<5 and (exc.code in (429,500,502,503,504) or reason in ('rateLimitExceeded','userRateLimitExceeded')):
                           time.sleep(min(2**(attempt+1),32));continue
-                      raise RuntimeError('Google API HTTP '+str(e.code)+' '+reason) from None
-          def meta(fid):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':'id,name,size,md5Checksum,sha256Checksum,trashed,parents,shared,ownedByMe,capabilities(canTrash)','supportsAllDrives':'true'})
-          def h(f):return f.get('Hashes',{}).get('md5') or f.get('Hashes',{}).get('MD5')
-          def matches(m,f):return not m.get('trashed') and int(m.get('size',-1))==f['Size'] and m.get('md5Checksum')==h(f) and (not f.get('Hashes',{}).get('sha256') or f['Hashes']['sha256']==m.get('sha256Checksum'))
-          parents={}
-          def children(pid):
-              if pid not in parents:
+                      raise RuntimeError('Google API HTTP '+str(exc.code)+' '+reason) from None
+          def meta(fid):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':FIELDS,'supportsAllDrives':'true'})
+          def set_trash(fid,value):return request('files/'+urllib.parse.quote(fid,safe=''),{'fields':FIELDS,'supportsAllDrives':'true'},{'trashed':value})
+          def norm(s):return unicodedata.normalize('NFC',s)
+          def fp(m):
+              values=[m['id'],m['name'],sorted(m.get('parents',[])),str(m['size']),m.get('md5Checksum'),m.get('sha256Checksum')]
+              return hashlib.sha256((plan['salt']+'\0'+json.dumps(values,ensure_ascii=False,separators=(',',':'))).encode()).hexdigest()
+          def md5(f):return f.get('Hashes',{}).get('md5') or f.get('Hashes',{}).get('MD5')
+          def same(a,b):return int(a.get('size',-1))==int(b.get('size',-2)) and bool(a.get('md5Checksum')) and a.get('md5Checksum')==b.get('md5Checksum') and bool(a.get('sha256Checksum')) and a.get('sha256Checksum')==b.get('sha256Checksum')
+          def protected(m):return not m.get('ownedByMe') or m.get('shared') or not m.get('capabilities',{}).get('canTrash')
+          def matches_file(m,f):return not m.get('trashed') and int(m.get('size',-1))==f['Size'] and m.get('md5Checksum')==md5(f) and (not f.get('Hashes',{}).get('sha256') or m.get('sha256Checksum')==f['Hashes']['sha256'])
+          parents={};koofr_folders={}
+          def children(pid,fresh=False):
+              if fresh or pid not in parents:
                   values=[];page=None
                   while True:
-                      p={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files(id,name,size,md5Checksum,sha256Checksum,createdTime,modifiedTime,parents,shared,ownedByMe,capabilities(canTrash))','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
-                      if page:p['pageToken']=page
-                      r=request('files',p);values+=r.get('files',[]);page=r.get('nextPageToken')
+                      params={'q':"'"+pid+"' in parents and trashed = false",'fields':'nextPageToken,files('+FIELDS+')','pageSize':1000,'supportsAllDrives':'true','includeItemsFromAllDrives':'true'}
+                      if page:params['pageToken']=page
+                      r=request('files',params);values+=r.get('files',[]);page=r.get('nextPageToken')
                       if not page:break
                   parents[pid]=values
               return parents[pid]
-          result={'entries':[],'source_run':39811260319}
-          for e in j['entries']:
-              if not e.get('verified'): continue
-              r={'previous_status':e['status'],'target':e['target'],'keeper':e['keeper']}
-              try:
-                  tm=meta(e['target']['ID']);km=meta(e['keeper']['ID']);r.update(target_metadata=tm,keeper_metadata=km)
-                  if e.get('verified'):
-                      candidates=[]
-                      for pid in km.get('parents',[]):
-                          candidates.extend(f for f in children(pid) if unicodedata.normalize('NFC',f['name'])==unicodedata.normalize('NFC',km['name']))
-                      k=json.loads(rc('lsjson','koofr:/GoogleBackup/'+e['keeper']['Path'],'--stat','--hash','--log-file',str(base/'rclone.log')))
-                      r['active_candidates']=candidates
-                      r['koofr_keeper']=k
-                      r['active_normalized_name_matches']=len(candidates)
-                      r['pass']=bool(tm.get('trashed') and matches(km,e['keeper']) and len(candidates)==1 and k['Size']==e['keeper']['Size'] and h(k)==h(e['keeper']))
-                  else:
-                      r['protection']={'owned':tm.get('ownedByMe'),'shared':tm.get('shared'),'can_trash':tm.get('capabilities',{}).get('canTrash')}
-              except Exception as exc:r['error']=str(exc) if isinstance(exc,RuntimeError) else type(exc).__name__
-              result['entries'].append(r)
-          json.dump(result,open(base/'verification.json','w'),ensure_ascii=False,indent=2)
-          summary={'previously_cleaned':sum(e.get('verified',False) for e in j['entries']),'postchecks_pass':sum(e.get('pass',False) for e in result['entries']),'postchecks_fail':sum(e['previous_status']=='drive_cleaned' and not e.get('pass',False) for e in result['entries']),'protected':dict(collections.Counter(json.dumps(e.get('protection'),sort_keys=True) for e in result['entries'] if e.get('protection'))),'errors':dict(collections.Counter(e['error'] for e in result['entries'] if e.get('error')))}
+          def koofr_check(path,reference,fresh=False):
+              folder=posixpath.dirname(path)
+              if fresh or folder not in koofr_folders:
+                  koofr_folders[folder]=json.loads(rc('lsjson','koofr:/GoogleBackup/'+folder,'--files-only','--hash','--log-file',str(base/'rclone.log')))
+              exact=[x for x in koofr_folders[folder] if x.get('Name')==posixpath.basename(path)]
+              return len(exact)==1 and exact[0]['Size']==reference['Size'] and md5(exact[0])==md5(reference)
+          def as_file(metadata,path):
+              return {'ID':metadata['id'],'Path':path,'Name':metadata['name'],'Size':int(metadata['size']),'IsDir':False,'Hashes':{'md5':metadata['md5Checksum'],'sha256':metadata['sha256Checksum']}}
+          j={'run_id':os.environ['GITHUB_RUN_ID'],'source_run':39811260319,'source_verification':40058110950,'purpose':'retain phone-created raw names and IDs','entries':[],'operations':[],'postchecks':[],'completed':False}
+          seen=set();operations=[]
+          for e in original['entries']:
+              if not e.get('verified'):continue
+              f=e['keeper'];t=meta(f['ID'])
+              if not matches_file(t,f) or len(t.get('parents',[]))!=1:raise RuntimeError('Original keeper changed; no mutation')
+              if not koofr_check(f['Path'],f):raise RuntimeError('Koofr counterpart changed; no mutation')
+              live=[x for x in children(t['parents'][0]) if norm(x['name'])==norm(t['name'])]
+              key=fp(t)
+              if key not in plan['pairs']:
+                  if len(live)!=1 or live[0]['id']!=t['id']:raise RuntimeError('Unplanned group changed; no mutation')
+                  baseline=copy.deepcopy(e);baseline['koofr_path']=f['Path'];j['entries'].append(baseline);continue
+              if len(live)!=2 or protected(t) or norm(t['name'])!=t['name']:raise RuntimeError('Expected unshared NFC pair changed; no mutation')
+              keepers=[x for x in live if x['id']!=t['id'] and fp(x)==plan['pairs'][key]]
+              if len(keepers)!=1:raise RuntimeError('Fixed phone keeper no longer matches; no mutation')
+              k=keepers[0]
+              if protected(k) or not same(t,k) or k.get('parents')!=t.get('parents') or k['name']==t['name']:raise RuntimeError('Pair protection or contents changed; no mutation')
+              new_path=posixpath.join(posixpath.dirname(f['Path']),k['name'])
+              baseline={'target':as_file(t,f['Path']),'keeper':as_file(k,new_path),'koofr_path':f['Path'],'status':'planned','verified':False,'target_metadata':t,'keeper_metadata':k}
+              j['entries'].append(baseline);operations.append(baseline);seen.add(key)
+          if seen!=set(plan['pairs']) or len(operations)!=15 or len(j['entries'])!=16 or sum(e['target']['Size'] for e in operations)!=30217626:raise RuntimeError('Fixed migration allow-list mismatch; no mutation')
+          journal=base/'cleanup-journal.json'
+          remote='koofr:/CloudDedupe-Quarantine/'+os.environ['GITHUB_RUN_ID']+'/cleanup-journal.json'
+          def save(remote_copy=False):
+              json.dump(j,open(journal,'w'),ensure_ascii=False,indent=2)
+              if remote_copy:rc('copyto',str(journal),remote,'--log-file',str(base/'rclone.log'))
+          save(True)
+          try:
+              for e in operations:
+                  t=meta(e['target']['ID']);k=meta(e['keeper']['ID'])
+                  if t.get('trashed') or k.get('trashed') or protected(t) or protected(k) or fp(t)!=fp(e['target_metadata']) or fp(k)!=fp(e['keeper_metadata']) or not same(t,k):raise RuntimeError('Pair changed immediately before mutation')
+                  e['status']='trash_requested';save()
+                  set_trash(t['id'],True)
+                  tm=meta(t['id']);km=meta(k['id'])
+                  if not tm.get('trashed') or not matches_file(km,e['keeper']):raise RuntimeError('Post-mutation identity/content check failed')
+                  e['status']='drive_cleaned';e['verified']=True;save()
+                  print('Phone keeper preserved '+str(sum(x.get('verified',False) for x in operations))+'/15',flush=True)
+              parents.clear();koofr_folders.clear()
+              for e in j['entries']:
+                  k=e['keeper_metadata'] if 'keeper_metadata' in e else meta(e['keeper']['ID'])
+                  live=[x for x in children(k['parents'][0]) if norm(x['name'])==norm(k['name'])]
+                  passed=len(live)==1 and live[0]['id']==e['keeper']['ID'] and matches_file(live[0],e['keeper']) and koofr_check(e['koofr_path'],e['keeper'])
+                  j['postchecks'].append({'keeper_id':e['keeper']['ID'],'active_normalized_name_matches':len(live),'pass':passed})
+              j['completed']=all(e['pass'] for e in j['postchecks']) and len(j['postchecks'])==16
+          finally:save(True)
+          summary={'phone_created_keepers_preserved':sum(x.get('verified',False) for x in operations),'old_nfc_copies_trashed':sum(x.get('verified',False) for x in operations),'trashed_bytes':sum(x['target']['Size'] for x in operations if x.get('verified')),'keeper_groups_checked':len(j['postchecks']),'keeper_groups_clean':sum(x['pass'] for x in j['postchecks']),'koofr_data_files_changed':0,'shared_candidates_untouched':29,'completed':j['completed']}
           pathlib.Path('encrypted').mkdir(exist_ok=True);json.dump(summary,open('encrypted/summary.json','w'),indent=2)
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Post-cleanup verification, read-only\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Retain FolderSync-created file identities; recoverable cleanup\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
           print(json.dumps(summary))
-          if summary['postchecks_fail'] or summary['errors']:raise SystemExit(2)
+          if not j['completed']:raise SystemExit(2)
           PY
-          python3 verify.py
+          python3 switch-keepers.py
       - name: Encrypt private restoration journal
         if: always()
         shell: bash
