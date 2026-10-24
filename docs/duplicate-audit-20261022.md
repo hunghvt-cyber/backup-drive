@@ -101,3 +101,10 @@ The operator authorized retaining the FolderSync-created file identities instead
 - A new private recovery and identity baseline was persisted outside the sync root before mutation and finalized after verification. The maintenance workflow was restored to read-only checks against baseline 40061302278 and supports provider-specific paths.
 
 This changes the keeper selection policy, not the phone backup mode. It is a controlled hypothesis test: the operator must now run FolderSync, then verify absence of regenerated objects and retained content; the next ordinary GitHub bisync also needs verification. Do not claim recurrence is solved until these checks pass. In future cleanup, preserve app-managed raw names and IDs when content and protection checks permit; normalized names are comparison keys, not a reason to rewrite filenames.
+
+
+## Phone retest after keeper migration — 2026-10-24
+
+The operator reported running both FolderSync folderpairs after the keeper migration. Read-only run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40063063174 completed successfully: 16 checked groups, 16 passed, zero failed checks and zero read/API errors. Each retained Drive identity remains live with matching content, each cleanup target remains trashed, each normalized-name group contains exactly one active object, and the corresponding Koofr content matches. This confirms no recurrence within these 16 groups following this phone retest; it is not a claim that all equal-content files across both clouds have been removed.
+
+A normal main-branch GitHub bisync was then dispatched for end-to-end verification: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40099455669 . All three optional inputs (resync, reset, extended_budget) were false. Production code and schedule were unchanged. This run and the subsequent read-only postcheck are pending.
