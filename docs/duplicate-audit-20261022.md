@@ -69,7 +69,7 @@ The scheduled bisync run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr
 6. Preserve intended cross-cloud replicas and intentional copies in different backup/selection directories.
 7. The new cloud-dedupe repo/web UI remains a later implementation step. No new tool or production sync change was deployed during this investigation.
 
-## Remaining blocker
+## Historical blocker before FolderSync identification
 
 Identify the separate writer responsible for the 03:01 and 04:00–04:01 Vietnam uploads, then coordinate it before removing the 15 regenerated Unicode duplicates. The 29 shared candidates (including all six linked Koofr cleanup pairs) remain protected. Production sync workflow, schedule, secrets, and baseline/cache remain unchanged.
 
@@ -77,3 +77,13 @@ Identify the separate writer responsible for the 03:01 and 04:00–04:01 Vietnam
 ## FolderSync retest cleanup — 2026-10-23
 
 The operator reported one-way S25 Ultra backups with FolderSync and enabled Only resync source files if modified. Run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39911255393 then revalidated the fixed 15 regenerated objects, their retained counterparts and Koofr content. It persisted restoration identities outside the sync root, moved 15 objects (30,217,626 bytes) to Drive Trash, and verified all 16 keeper groups each have exactly one active normalized-name object. All 29 shared candidates remained untouched; zero Koofr files were moved. The maintenance workflow was restored to read-only verification. Production sync, schedule, credentials and baseline/cache were unchanged. The operator will now run both FolderSync folderpairs; prevention of recurrence is pending that retest.
+
+
+## Verification after the next scheduled cycle — 2026-10-24
+
+- Scheduled GitHub bisync run: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40029415810 ; NORMAL BISYNC began 2026-10-23 21:48 UTC (2026-10-24 04:48 Vietnam), finished 21:58 UTC (04:58 Vietnam), rclone exit code 0.
+- Fresh read-only audit: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40058110950 ; 1 of 16 keeper groups passed, 15 failed, with zero API/read errors.
+- All 16 retained files remain live and match their previous size, MD5 and SHA256; all 16 original first-cleanup targets remain trashed. However 15 extra active objects have appeared again. Each matches its keeper in size, MD5 and SHA256, with a different raw Unicode name and the same normalized name. They are owned and unshared.
+- Eight objects in the phone backup group were created 2026-10-23 20:01:12–20:01:28 UTC (2026-10-24 03:01 Vietnam); seven in the music group at 21:00:18–21:00:28 UTC (04:00 Vietnam). These timestamps are after the second cleanup and before the GitHub sync, establishing recurrence before that sync.
+- The operator-reported FolderSync setting change has therefore not passed this recurrence test. Do not claim it solved the issue. Exact Folderpair configuration and filename handling still need inspection; current evidence does not establish why the setting was ineffective.
+- No further files were deleted during this verification. Preserve evidence and inspect the phone backup configuration before repeating cleanup.
