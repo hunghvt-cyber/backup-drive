@@ -87,3 +87,17 @@ The operator reported one-way S25 Ultra backups with FolderSync and enabled Only
 - Eight objects in the phone backup group were created 2026-10-23 20:01:12–20:01:28 UTC (2026-10-24 03:01 Vietnam); seven in the music group at 21:00:18–21:00:28 UTC (04:00 Vietnam). These timestamps are after the second cleanup and before the GitHub sync, establishing recurrence before that sync.
 - The operator-reported FolderSync setting change has therefore not passed this recurrence test. Do not claim it solved the issue. Exact Folderpair configuration and filename handling still need inspection; current evidence does not establish why the setting was ineffective.
 - No further files were deleted during this verification. Preserve evidence and inspect the phone backup configuration before repeating cleanup.
+
+
+## Phone-preferred keeper migration — 2026-10-24
+
+The operator authorized retaining the FolderSync-created file identities instead of the old NFC copies. A fixed salted metadata allow-list linked each old target to its existing phone-created keeper; no raw file names or IDs were published.
+
+- Run: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40061302278 ; all steps completed successfully.
+- Preserved all 15 phone-created objects with their exact IDs, raw names and contents. Moved the 15 old, owned, unshared NFC copies to Drive Trash (30,217,626 bytes), with fresh size/MD5/SHA256 and protection checks before mutation and identity/content checks afterwards.
+- Fresh native Drive checks passed for all 16 keeper groups: exactly one active normalized-name object per group. All retained contents match the corresponding Koofr backup files.
+- No Koofr backup data file was moved or renamed. Its exact raw path is recorded separately as koofr_path; the tool must not assume both providers use identical raw Unicode names.
+- The 29 protected shared candidates remain untouched. Production bisync code, schedule, credentials and state were unchanged.
+- A new private recovery and identity baseline was persisted outside the sync root before mutation and finalized after verification. The maintenance workflow was restored to read-only checks against baseline 40061302278 and supports provider-specific paths.
+
+This changes the keeper selection policy, not the phone backup mode. It is a controlled hypothesis test: the operator must now run FolderSync, then verify absence of regenerated objects and retained content; the next ordinary GitHub bisync also needs verification. Do not claim recurrence is solved until these checks pass. In future cleanup, preserve app-managed raw names and IDs when content and protection checks permit; normalized names are comparison keys, not a reason to rewrite filenames.
