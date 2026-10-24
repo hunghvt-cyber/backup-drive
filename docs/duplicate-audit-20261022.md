@@ -2,6 +2,10 @@
 
 This is a one-time operational investigation before creating a separate cloud-dedupe repository. No new web app has been deployed.
 
+## Current verified status — 2026-10-24
+
+The phone-preferred keeper policy passed the operator's FolderSync retest, a subsequent normal GitHub bisync, and a fresh post-bisync audit: all 16 groups passed; no duplicate recurred in these groups; retained Drive and Koofr contents match. The 29 shared candidates (including the six linked Koofr cleanup pairs) remain protected. No permanent purge or production sync configuration change was performed. The separate reusable tool remains a future implementation step.
+
 ## Inventory evidence
 
 - Read-only inventory run: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/39806736634
@@ -107,4 +111,12 @@ This changes the keeper selection policy, not the phone backup mode. It is a con
 
 The operator reported running both FolderSync folderpairs after the keeper migration. Read-only run https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40063063174 completed successfully: 16 checked groups, 16 passed, zero failed checks and zero read/API errors. Each retained Drive identity remains live with matching content, each cleanup target remains trashed, each normalized-name group contains exactly one active object, and the corresponding Koofr content matches. This confirms no recurrence within these 16 groups following this phone retest; it is not a claim that all equal-content files across both clouds have been removed.
 
-A normal main-branch GitHub bisync was then dispatched for end-to-end verification: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40099455669 . All three optional inputs (resync, reset, extended_budget) were false. Production code and schedule were unchanged. This run and the subsequent read-only postcheck are pending.
+A normal main-branch GitHub bisync was then dispatched for end-to-end verification: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40099455669 . All three optional inputs (resync, reset, extended_budget) were false. Production code and schedule were unchanged. This normal bisync completed with rclone exit code 0 and BISYNC SUCCESS. Subsequent read-only verification run 40099951859 also passed all 16 groups with zero failed checks and zero API/read errors.
+
+
+## End-to-end result after the normal bisync — 2026-10-24
+
+- Phone retest verification: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40063063174 ; 16 passed, zero failed, zero read/API errors.
+- Normal bisync: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40099455669 ; NORMAL BISYNC, rclone exit code 0, BISYNC SUCCESS, completed 2026-10-24 13:49 UTC (20:49 Vietnam). resync/reset/extended_budget all false.
+- Post-bisync read-only verification: https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/40099951859 ; completed 13:54 UTC (20:54 Vietnam), 16 passed, zero failed and zero read/API errors.
+- This validates the phone-preferred keeper selection within the 16 inspected groups across this complete phone → Drive ↔ Koofr trial. It does not certify all cloud folders or promise future syncs cannot introduce new duplicates. Existing protection and revalidation rules remain necessary.
