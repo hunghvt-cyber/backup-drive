@@ -38,6 +38,13 @@ jobs:
     # allows the exceptional 5h30 rescue/resync path.
     timeout-minutes: ${{ (github.event_name == 'workflow_dispatch' && inputs.extended_budget == true) && 330 || 35 }}
 
+    env:
+      # Bound all Drive probes as well as bisync; no automatic resync/retry.
+      RCLONE_TPSLIMIT: "2"
+      RCLONE_TPSLIMIT_BURST: "1"
+      RCLONE_DRIVE_PACER_MIN_SLEEP: "500ms"
+      RCLONE_DRIVE_PACER_BURST: "1"
+
     steps:
 
       # ============================================================
@@ -240,9 +247,9 @@ jobs:
             "--recover"
             "--resilient"
             "--tpslimit"
-            "5"
+            "2"
             "--tpslimit-burst"
-            "5"
+            "1"
             "--max-lock"
             "2m"
             "--checksum"
