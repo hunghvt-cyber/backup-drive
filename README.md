@@ -1,3 +1,5 @@
+> 29/10: [backup/report recovery](docs/BACKUP-REPORT-RECOVERY-20261029.md) — canonical repo names, compatible GAS reports and guarded runtime fixes; live validation remains separate.
+
 # Google Drive ↔ Koofr Backup
 
 Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/GoogleBackup` bằng Rclone Bisync.
