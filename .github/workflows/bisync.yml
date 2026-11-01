@@ -1,562 +1,133 @@
-name: Two-Way Sync (Google Drive <-> Koofr)
-
+name: Google Drive to Koofr Backup
 on:
   schedule:
-    # 02:00 Vietnam = 19:00 UTC
-    - cron: '0 19 * * *'
-
+    - cron: '0 19 * * *' # 02:00 Vietnam, unchanged
   workflow_dispatch:
     inputs:
-      resync:
-        description: 'Rebuild bisync baseline. Chỉ bật lần đầu hoặc khi rclone yêu cầu.'
+      dry_run:
+        description: 'Chạy thử chỉ đọc; không sao chép dữ liệu hoặc phát báo cáo backup.'
         required: false
         type: boolean
-        default: false
-      reset:
-        description: 'Xóa bisync state + ignore list cũ và chạy lại sạch như lần đầu.'
-        required: false
-        type: boolean
-        default: false
-      extended_budget:
-        description: 'CHỈ chạy thủ công khi cần resync lớn: tối đa 5h30, có thể vượt hạn mức miễn phí tháng.'
-        required: false
-        type: boolean
-        default: false
+        default: true
+  push:
+    branches: [main]
+    paths: ['deploy/drive-copy-cutover-20261101.json']
 
 concurrency:
   group: gdrive-koofr-bisync
   cancel-in-progress: false
-
 permissions:
   contents: read
 
+env:
+  RCLONE_TPSLIMIT: '2'
+  RCLONE_TPSLIMIT_BURST: '1'
+  RCLONE_DRIVE_PACER_MIN_SLEEP: 500ms
+  RCLONE_DRIVE_PACER_BURST: '1'
+
 jobs:
-  run-bisync:
-    runs-on: ubuntu-latest
-    # Scheduled normal sync: at most 35 min including setup, state cache,
-    # logs, artifacts and report. Only EXPLICIT manual extended_budget=true
-    # allows the exceptional 5h30 rescue/resync path.
-    timeout-minutes: ${{ (github.event_name == 'workflow_dispatch' && inputs.extended_budget == true) && 330 || 35 }}
-
-    env:
-      # Bound all Drive probes as well as bisync; no automatic resync/retry.
-      RCLONE_TPSLIMIT: "2"
-      RCLONE_TPSLIMIT_BURST: "1"
-      RCLONE_DRIVE_PACER_MIN_SLEEP: "500ms"
-      RCLONE_DRIVE_PACER_BURST: "1"
-
+  preview:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
     steps:
-
-      # ============================================================
-      # 1. Install rclone
-      # ============================================================
-      - name: Install Rclone
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # Match the version used to validate listing compatibility.
-          curl -fsS --max-time 90 -o "$RUNNER_TEMP/rclone.zip" https://downloads.rclone.org/v1.75.2/rclone-v1.75.2-linux-amd64.zip
-          unzip -q "$RUNNER_TEMP/rclone.zip" -d "$RUNNER_TEMP/rclone-bin"
-          sudo install "$RUNNER_TEMP/rclone-bin/rclone-v1.75.2-linux-amd64/rclone" /usr/local/bin/rclone
-
-          echo "Rclone version:"
-          rclone version
-
-
-      # ============================================================
-      # 2. Checkout repository
-      # ============================================================
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-
-      # ============================================================
-      # 3. Configure rclone
-      # ============================================================
-      - name: Configure Rclone
-        shell: bash
-        env:
-          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
-        run: |
-          set -euo pipefail
-
-          mkdir -p "$HOME/.config/rclone"
-
-          printf '%s' "$RCLONE_CONFIG_CONTENT" \
-            | base64 --decode \
-            > "$HOME/.config/rclone/rclone.conf"
-
-          chmod 600 "$HOME/.config/rclone/rclone.conf"
-
-          echo "Available remotes:"
-          rclone listremotes
-
-          echo ""
-          echo "Testing Google Drive..."
-          rclone lsd gdrive: --max-depth 1
-
-          echo ""
-          echo "Testing Koofr..."
-          # Retry only the read-only connectivity check for temporary service errors.
-          for attempt in 1 2 3; do
-            if rclone lsd koofr:GoogleBackup --max-depth 1; then
-              break
-            fi
-            if [ "$attempt" = 3 ]; then
-              exit 1
-            fi
-            sleep $((attempt * 15))
-          done
-
-
-      # ============================================================
-      # 4. Restore bisync state
-      # ============================================================
-      - name: Restore Bisync State
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.reset != true }}
-        uses: actions/cache/restore@v4
+      - uses: actions/checkout@v4
         with:
-          path: ~/.cache/rclone
-          key: rclone-bisync-validated-v1-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: |
-            rclone-bisync-validated-v1-${{ github.ref_name }}-
-            rclone-bisync-state-${{ github.ref_name }}-
-
-
-      # ============================================================
-      # 5. Restore ignored files
-      # ============================================================
-      - name: Restore Ignored Files
-        id: ignored_cache
-        if: ${{ inputs.reset != true }}
-        uses: actions/cache/restore@v4
+          persist-credentials: false
+      - name: Verify approved cutover policy
+        if: github.event_name == 'push'
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('deploy/drive-copy-cutover-20261101.json'))
+          assert d == {'mode':'drive-to-koofr-copy','retain_destination_only':True,'preserve_replaced_versions':True}
+          PY
+      - uses: ./.github/actions/setup-drive-copy
         with:
-          path: .sync-state
-          key: rclone-ignored-files-${{ github.ref_name }}-${{ github.run_id }}
-          restore-keys: |
-            rclone-ignored-files-${{ github.ref_name }}-
-            rclone-ignored-files-
-
-
-      # Run #62 failed before restoring state but cached an empty ignore list.
-      # Recover the last known populated cache only when that exact bad key wins.
-      - name: Recover Ignore Cache After Configuration Failure
-        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.reset != true) && steps.ignored_cache.outputs.cache-matched-key == 'rclone-ignored-files-main-37156780658' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: .sync-state
-          key: rclone-ignored-files-main-37074336340
-          fail-on-cache-miss: true
-
-      # ============================================================
-      # 6. Prepare state
-      # ============================================================
-      - name: Prepare State
-        id: state
-        shell: bash
+          rclone-config: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+      - name: Preview one-way backup
+        run: python3 scripts/drive_copy.py --dry-run
+      - name: Require completed preview
         run: |
-          set -euo pipefail
-
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "${{ inputs.reset }}" = "true" ]; then
-            echo "[MODE] CLEAN RESET"
-            rm -rf "$HOME/.cache/rclone/bisync" .sync-state
-          fi
-
-          # One shared deadline for initial bisync + optional retry.
-          # Standard scheduled run: 29 min rclone (plus up to 2 min SIGINT
-          # graceful stop); 35 min job cap leaves time to save cache/logs.
-          # Manual extended mode restores the former 300-min sync budget.
-          if [ "${{ inputs.extended_budget }}" = "true" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            BISYNC_MINUTES=300
-            echo "::warning::Extended 5h30 mode is manual-only and may consume paid Actions minutes."
-          else
-            BISYNC_MINUTES=29
-          fi
-          echo "BISYNC_DEADLINE=$(( $(date +%s) + BISYNC_MINUTES * 60 ))" >> "$GITHUB_ENV"
-          echo "BISYNC_BUDGET_MINUTES=$BISYNC_MINUTES" >> "$GITHUB_ENV"
-          echo "BISYNC_BUDGET_START=$(date -u +%FT%TZ)" >> "$GITHUB_ENV"
-          echo "BISYNC_BUDGET=$BISYNC_MINUTES minutes; reserves remain for state and reports."
-
-          mkdir -p .sync-state
-          touch .sync-state/ignored-files.txt
-
-          sort -u .sync-state/ignored-files.txt \
-            -o .sync-state/ignored-files.txt
-
-          echo ""
-          echo "Currently ignored files:"
-
-          if [ -s .sync-state/ignored-files.txt ]; then
-            cat .sync-state/ignored-files.txt
-          else
-            echo "(none)"
-          fi
-
-
-      # ============================================================
-      # 7. Build rclone filter file
-      # ============================================================
-      - name: Build Filters
-        run: |
-          set -euo pipefail
-
-          mkdir -p "$HOME/.cache/rclone"
-
-          python3 scripts/bisync-helper.py \
-            build-filter \
-            .sync-state/ignored-files.txt \
-            "$HOME/.cache/rclone/bisync-filters.txt"
-
-
-      - name: Validate Restored Bisync State
-        id: restored_state
-        run: |
-          python3 scripts/bisync_state.py \
-            --workdir "$HOME/.cache/rclone/bisync" \
-            --filters "$HOME/.cache/rclone/bisync-filters.txt"
-
-      # ============================================================
-      # 8. Run bisync
-      # ============================================================
-      - name: Run Bisync
-        id: bisync
-        shell: bash
-        run: |
-          set +e
-
-          SYNC_REMAINING=$((BISYNC_DEADLINE - $(date +%s)))
-          LOG_FILE="$GITHUB_WORKSPACE/bisync.log"
-
-          BACKUP_DIR2="koofr:/GoogleBackup-Trash/$(date -u +%Y-%m-%d_%H%M%S)"
-
-          RESYNC_RUN=false
-
-          COMMON_ARGS=(
-            "--fast-list"
-            "--drive-acknowledge-abuse"
-            "--max-delete"
-            "25"
-            "--backup-dir2"
-            "$BACKUP_DIR2"
-            "--recover"
-            "--resilient"
-            "--tpslimit"
-            "2"
-            "--tpslimit-burst"
-            "1"
-            "--max-lock"
-            "2m"
-            "--checksum"
-            "--transfers"
-            "8"
-            "--checkers"
-            "16"
-            "--filters-file"
-            "$HOME/.cache/rclone/bisync-filters.txt"
-            "--stats"
-            "30s"
-            "--stats-one-line"
-            "--log-level"
-            "INFO"
-          )
-
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "${{ inputs.resync }}" = "true" ]; then
-
-            RESYNC_RUN=true
-            echo "[MODE] MANUAL RESYNC"
-
-            timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
-              gdrive:/ \
-              koofr:/GoogleBackup \
-              --resync \
-              "${COMMON_ARGS[@]}" \
-              2>&1 | tee "$LOG_FILE"
-
-          elif [ "${{ steps.restored_state.outputs.valid }}" = "true" ] && [ ! -f .sync-state/resync-pending ] && [ ! -f .sync-state/checkpoint-review-required ]; then
-
-            echo "[MODE] NORMAL BISYNC"
-
-            timeout --signal=INT --kill-after=120s "${SYNC_REMAINING}s" rclone bisync \
-              gdrive:/ \
-              koofr:/GoogleBackup \
-              --track-renames \
-              "${COMMON_ARGS[@]}" \
-              2>&1 | tee "$LOG_FILE"
-
-          else
-
-            echo "::error::Bisync baseline missing or resync pending. Refusing automatic --resync to prevent deleted files being restored."
-            echo "[BLOCKED] NO TRUSTED BISYNC STATE"
-            echo "rclone_exit_code=90" >> "$GITHUB_OUTPUT"
-            exit 0
-
-          fi
-
-          RC=${PIPESTATUS[0]}
-
-          # A timed-out initial resync has not established a trusted baseline.
-          # Continue it next day, comparing existing files with --checksum.
-          if [ "$RC" = 124 ] && [ "$RESYNC_RUN" = true ]; then
-            touch .sync-state/resync-pending
-          elif [ "$RC" = 0 ]; then
-            rm -f .sync-state/resync-pending
-          else
-            # Real errors must remain fatal, without scheduling an automatic resync.
-            rm -f .sync-state/resync-pending
-          fi
-
-          echo "rclone_exit_code=$RC" >> "$GITHUB_OUTPUT"
-
-          echo ""
-          echo "Rclone exit code: $RC"
-
-          exit 0
-
-
-      # ============================================================
-      # 9. Parse errors
-      # ============================================================
-      - name: Parse Bisync Errors
-        id: parse_errors
-        if: always() && hashFiles('bisync.log') != ''
-        run: |
-          python3 scripts/bisync-helper.py \
-            parse \
-            bisync.log \
-            .sync-state/ignored-files.txt \
-            .sync-state/ignored-report.txt \
-            .sync-state/parse-result
-
-
-      # ============================================================
-      # 10. Rebuild filters if new ignored files were found
-      # ============================================================
-      - name: Rebuild Filters
-        if: |
-          steps.parse_errors.outputs.new_ignored != '0'
-        run: |
-          python3 scripts/bisync-helper.py \
-            build-filter \
-            .sync-state/ignored-files.txt \
-            "$HOME/.cache/rclone/bisync-filters.txt"
-
-
-      # ============================================================
-      # 11. Do not retry with a rebuilt baseline automatically.
-      # A filter change requires manual review: --resync may restore deleted files.
-      - name: Block Unsafe Automatic Retry
-        if: |
-          steps.bisync.outputs.rclone_exit_code != '0'
-          && steps.parse_errors.outputs.new_ignored != '0'
-        run: |
-          echo "::warning::New ignored files detected. Automatic retry/resync disabled to preserve deletion history."
-
-      # ============================================================
-      # 12. Parse retry errors
-      # ============================================================
-      - name: Parse Retry Errors
-        id: parse_retry
-        if: |
-          steps.retry.outputs.retry_exit_code != ''
-          && steps.retry.outputs.retry_exit_code != '0'
-        run: |
-          python3 scripts/bisync-helper.py \
-            parse-retry \
-            bisync-retry.log \
-            .sync-state/ignored-files.txt \
-            .sync-state/retry-new-count
-
-
-      # ============================================================
-      # 13. Save bisync state
-      # ============================================================
-      - name: Check Bisync State To Save
-        id: state_to_save
-        if: always() && steps.state.outcome == 'success'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/bisync_state.py \
-            --workdir "$HOME/.cache/rclone/bisync" \
-            --filters "$HOME/.cache/rclone/bisync-filters.txt" \
-            --exit-code "${{ steps.bisync.outputs.rclone_exit_code || '90' }}" \
-            --log bisync.log \
-            --review-marker .sync-state/checkpoint-review-required
-
-      - name: Save Bisync State
-        if: always() && steps.state_to_save.outputs.valid == 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/rclone
-          key: rclone-bisync-validated-v1-${{ github.ref_name }}-${{ github.run_id }}
-
-
-      # Keep failure evidence out of the restore prefix. Never erase old caches.
-      - name: Preserve Rejected State For Investigation
-        if: always() && steps.state.outcome == 'success' && steps.state_to_save.outputs.valid != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.cache/rclone
-          key: rclone-bisync-rejected-v1-${{ github.ref_name }}-${{ github.run_id }}
-
-      # ============================================================
-      # 14. Save ignored files
-      # ============================================================
-      - name: Save Ignored Files
-        if: always() && steps.state.outcome == 'success'
-        uses: actions/cache/save@v4
-        with:
-          path: .sync-state
-          key: rclone-ignored-files-${{ github.ref_name }}-${{ github.run_id }}
-
-
-      # ============================================================
-      # 15. Upload report
-      # ============================================================
-      - name: Upload Bisync Report
+          python3 - <<'PY'
+          import json
+          d=json.load(open('copy-result.json'))
+          assert d['complete'] and d['dry_run'], 'Preview incomplete; no live copy allowed.'
+          PY
+      - name: Upload sanitized preview
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bisync-report-${{ github.run_id }}
-          path: |
-            .sync-state/ignored-files.txt
-            .sync-state/ignored-report.txt
-            bisync.log
-            bisync-retry.log
+          name: drive-copy-preview-${{ github.run_id }}
+          path: copy-result.json
           if-no-files-found: ignore
-          retention-days: 30
-
-
-      # ============================================================
-      # 16. GitHub Actions Summary
-      # ============================================================
-      - name: Generate Summary
+          retention-days: 7
+      - name: Remove private probe files
         if: always()
-        shell: bash
+        run: rm -rf .copy-state/private "$HOME/.config/rclone/rclone.conf" "$RUNNER_TEMP/copy-filter.log"
+
+  run-copy:
+    needs: preview
+    if: >-
+      always() && !cancelled() &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'push' && needs.preview.result == 'success') ||
+       (github.event_name == 'workflow_dispatch' && inputs.dry_run == false))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-drive-copy
+        with:
+          rclone-config: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+      - name: Copy Drive to Koofr
+        id: copy
+        run: python3 scripts/drive_copy.py
+      - name: Parse copy errors without exposing paths
+        id: errors
+        if: always() && steps.copy.outcome == 'success'
         run: |
-          {
-            echo "## Google Drive ↔ Koofr"
-            echo ""
-            echo "**Target:** \`koofr:/GoogleBackup\`"
-            echo ""
-            echo "### Ignored files"
-
-            if [ -s .sync-state/ignored-files.txt ]; then
-              COUNT=$(wc -l < .sync-state/ignored-files.txt)
-
-              echo ""
-              echo "**$COUNT file(s)** currently ignored."
-              echo ""
-              echo '```text'
-              cat .sync-state/ignored-files.txt
-              echo '```'
-            else
-              echo ""
-              echo "No ignored files."
-            fi
-
-            echo ""
-            echo "### Safety"
-            echo ""
-            echo "- Two-way bisync"
-            echo "- --max-delete 25%"
-            echo "- --backup-dir2 (file bị xóa ở Koofr được chuyển vào koofr:/GoogleBackup-Trash/, không xóa vĩnh viễn)"
-            echo "- --recover"
-            echo "- --resilient"
-            echo "- --checksum (so sánh nội dung, không dùng modtime vì Koofr ghi sai)"
-            echo "- Permission/FileBlocked errors are tracked"
-            echo "- Other errors remain fatal"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-
-      # ============================================================
-      # 17. Final status
-      # ============================================================
-      - name: Final Status
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          RC="${{ steps.bisync.outputs.rclone_exit_code }}"
-          RETRY_RC="${{ steps.retry.outputs.retry_exit_code }}"
-
-          RETRY_NEW=$(cat .sync-state/retry-new-count 2>/dev/null || echo 0)
-
-          echo "============================================================"
-          echo "FINAL STATUS"
-          echo "============================================================"
-
-          echo "Initial rclone exit code: ${RC:-unknown}"
-          echo "Retry rclone exit code:   ${RETRY_RC:-not-run}"
-          echo "New errors during retry:  $RETRY_NEW"
-          echo ""
-
-          if [ "${{ steps.state_to_save.outputs.valid }}" != "true" ]; then
-            echo "::error::No validated bisync checkpoint. Recovery review required; no automatic resync."
-            exit 1
-          fi
-
-          if [ "${RC:-1}" = "0" ]; then
-            echo "BISYNC SUCCESS"
-            exit 0
-          fi
-
-          # A timeout is a safe pause ONLY after clean shutdown and native
-          # listing validation. Otherwise the checkpoint gate above fails.
-          if [ "${RC:-1}" = "124" ]; then
-            echo "::warning::Bisync budget (${BISYNC_BUDGET_MINUTES:-29} min) reached. Cache/ignored-file state and logs were saved; next run will continue."
-            echo "BISYNC PAUSED AT ${BISYNC_BUDGET_MINUTES:-29}-MIN BUDGET"
-            exit 0
-          fi
-
-          if [ "${RETRY_RC:-1}" = "0" ]; then
-
-            if [ "$RETRY_NEW" != "0" ]; then
-              echo "::warning::Retry succeeded but detected $RETRY_NEW new ignored file(s). Check the artifact."
-            fi
-
-            echo "BISYNC SUCCESS AFTER IGNORING PROBLEMATIC FILES"
-            exit 0
-          fi
-
-          echo "BISYNC FAILED"
-          echo ""
-          echo "No unsafe automatic resync was performed."
-          exit 1
-
-      # Publish only a small sanitized report; failure cannot change backup outcome.
-      - name: Publish latest backup metrics (selected report backend)
-        if: always() && steps.bisync.outcome != 'skipped'
-        shell: bash
+          python3 scripts/bisync-helper.py parse .copy-state/private/copy.log .copy-state/ignored-files.txt .copy-state/private/ignored-report.txt .copy-state/private/parse-result > "$RUNNER_TEMP/copy-errors.log"
+          cp .copy-state/ignored-files.txt .copy-ignore/ignored-files.txt
+      - name: Save ignore list only
+        if: always() && steps.errors.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: .copy-ignore
+          key: rclone-copy-ignore-v1-main-${{ github.run_id }}
+      - name: Prepare terminal aggregate
+        if: always() && steps.copy.outcome == 'success'
         env:
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-          REPORT_BACKEND: ${{ vars.REPORT_BACKEND || 'gas-drive' }}
+          RCLONE_RC: ${{ steps.copy.outputs.exit_code }}
+          RETRY_RC: ''
+          NEW_IGNORED: ${{ steps.errors.outputs.new_ignored }}
+        run: python3 scripts/backup-summary.py
+      - name: Publish report independently of copy outcome
+        if: always() && steps.copy.outcome == 'success'
+        env:
           REPORT_GAS_URL: ${{ vars.REPORT_GAS_URL }}
           REPORT_GAS_KEY: ${{ secrets.REPORT_GAS_KEY }}
-          RCLONE_RC: ${{ steps.bisync.outputs.rclone_exit_code }}
-          RETRY_RC: ${{ steps.retry.outputs.retry_exit_code }}
-          NEW_IGNORED: ${{ steps.parse_errors.outputs.new_ignored }}
+        run: python3 scripts/publish_gas_report.py backup-summary.json
+      - name: Upload sanitized terminal aggregate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drive-copy-result-${{ github.run_id }}
+          path: |
+            copy-result.json
+            backup-summary.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Require completed copy
+        if: always()
         run: |
-          # Preserve real engine errors; only override a false success/safe pause.
-          if [ "${{ steps.state_to_save.outputs.valid }}" != "true" ] && { [ "$RCLONE_RC" = "0" ] || [ "$RCLONE_RC" = "124" ]; }; then
-            export RCLONE_RC=91
-          fi
-          python3 scripts/backup-summary.py
-          case "$REPORT_BACKEND" in
-            gas-drive)
-              python3 scripts/publish_gas_report.py backup-summary.json
-              ;;
-            blob)
-              if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then
-                echo "::notice::BLOB_READ_WRITE_TOKEN missing; report publishing disabled."
-                exit 0
-              fi
-              python3 -m pip install --disable-pip-version-check 'vercel==0.11.6'
-              python3 scripts/publish_blob_report.py backup-summary.json gdrive-backup-latest.json
-              ;;
-            *)
-              echo "::error::Unsupported report backend."
-              exit 1
-              ;;
-          esac
+          python3 - <<'PY'
+          import json
+          d=json.load(open('copy-result.json'))
+          assert d['complete'] and not d['dry_run'], 'Copy incomplete; see sanitized report.'
+          PY
+      - name: Remove private logs and credentials
+        if: always()
+        run: rm -rf .copy-state/private "$HOME/.config/rclone/rclone.conf" "$RUNNER_TEMP/copy-filter.log" "$RUNNER_TEMP/copy-errors.log"
