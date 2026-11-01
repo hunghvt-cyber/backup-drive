@@ -18,3 +18,87 @@ jobs:
           python-version: '3.12'
       - run: python -m compileall -q scripts tests
       - run: python -m unittest discover -s tests -v
+
+  recovery-audit:
+    # One incident-specific, read-only probe; never run third-party PR code with credentials.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/bisync-state-recovery-20261101'
+    needs: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    concurrency:
+      group: gdrive-koofr-bisync
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install incident rclone version
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 90 -o "$RUNNER_TEMP/rclone.zip" https://downloads.rclone.org/v1.75.2/rclone-v1.75.2-linux-amd64.zip
+          unzip -q "$RUNNER_TEMP/rclone.zip" -d "$RUNNER_TEMP/rclone-bin"
+          echo "$RUNNER_TEMP/rclone-bin/rclone-v1.75.2-linux-amd64" >> "$GITHUB_PATH"
+      - name: Configure without logging remote names or credentials
+        env:
+          RCLONE_CONFIG_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/.config/rclone"
+          printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > "$HOME/.config/rclone/rclone.conf"
+      - name: Restore last successful checkpoint exactly
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/rclone
+          key: rclone-bisync-state-main-40970527964
+          fail-on-cache-miss: true
+      - name: Keep last successful state separate
+        run: mv "$HOME/.cache/rclone" "$RUNNER_TEMP/last-success"
+      - name: Restore current rejected checkpoint exactly
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/rclone
+          key: rclone-bisync-state-main-41246828486
+          fail-on-cache-miss: true
+      - name: Restore current ignore list exactly
+        uses: actions/cache/restore@v4
+        with:
+          path: .sync-state
+          key: rclone-ignored-files-main-41246828486
+          fail-on-cache-miss: true
+      - name: Check both checkpoints without syncing
+        run: |
+          set -euo pipefail
+          python3 scripts/bisync-helper.py build-filter .sync-state/ignored-files.txt "$RUNNER_TEMP/filter.txt" > "$RUNNER_TEMP/filter-build.log"
+          echo "CURRENT_CHECKPOINT"
+          python3 scripts/bisync_state.py --workdir "$HOME/.cache/rclone/bisync" --filters "$RUNNER_TEMP/filter.txt"
+      - name: Validate last success for preview
+        id: checkpoints
+        run: |
+          echo "LAST_SUCCESS_CHECKPOINT"
+          python3 scripts/bisync_state.py --workdir "$RUNNER_TEMP/last-success/bisync" --filters "$RUNNER_TEMP/filter.txt"
+      - name: Preview recovery from last success, without remote writes
+        if: steps.checkpoints.outputs.valid == 'true'
+        env:
+          RCLONE_TPSLIMIT: '2'
+          RCLONE_TPSLIMIT_BURST: '1'
+          RCLONE_DRIVE_PACER_MIN_SLEEP: 500ms
+          RCLONE_DRIVE_PACER_BURST: '1'
+        run: |
+          set -uo pipefail
+          # Only scratch listings can change. Do not save this dry-run as a cache.
+          cp -a "$RUNNER_TEMP/last-success/bisync" "$RUNNER_TEMP/preview-state"
+          timeout --signal=INT --kill-after=120s 1740s rclone bisync \
+            gdrive:/ koofr:/GoogleBackup --dry-run --workdir "$RUNNER_TEMP/preview-state" \
+            --fast-list --drive-acknowledge-abuse --checksum --track-renames \
+            --recover --resilient --max-lock 2m --max-delete 25 \
+            --backup-dir2 "koofr:/GoogleBackup-Trash/recovery-preview-20261101" \
+            --filters-file "$RUNNER_TEMP/filter.txt" --transfers 8 --checkers 16 \
+            --color NEVER --log-level INFO > "$RUNNER_TEMP/recovery-preview.log" 2>&1
+          rc=$?
+          python3 scripts/bisync_preview_summary.py "$RUNNER_TEMP/recovery-preview.log" "$rc"
+          exit "$rc"
+      - name: Remove temporary credentials and raw private logs
+        if: always()
+        run: |
+          rm -f "$HOME/.config/rclone/rclone.conf" "$RUNNER_TEMP/recovery-preview.log" "$RUNNER_TEMP/filter.txt" "$RUNNER_TEMP/filter-build.log"
