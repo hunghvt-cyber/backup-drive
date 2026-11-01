@@ -120,7 +120,16 @@ class StateTests(unittest.TestCase):
 
     def test_unicode_comparison_rejects_unverifiable_or_malformed_listings(self):
         self.listing(state.PAIR[0], [('sample', 100, '-')])
-        self.listing(state.PAIR[1], [('sample', 100, '-')])
+        self.listing(state.PAIR[1], [('sample-other', 100, '-')])
         self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
         (self.root / state.PAIR[0]).write_text('garbage')
+        self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
+
+    def test_exact_names_keep_native_unknown_hash_semantics_but_aliases_require_hash(self):
+        import unicodedata
+        self.listing(state.PAIR[0], [('document', -1, '-')])
+        self.listing(state.PAIR[1], [('document', -1, '-')])
+        self.assertTrue(state.compare_unicode_pair(self.root)['equivalent'])
+        self.listing(state.PAIR[0], [('tài liệu', -1, '-')])
+        self.listing(state.PAIR[1], [(unicodedata.normalize('NFD', 'tài liệu'), -1, '-')])
         self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])

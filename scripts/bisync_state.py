@@ -39,8 +39,8 @@ def compare_unicode_pair(workdir):
 
     rclone's standalone check starts with an empty runtime AliasMap, so it can
     reject a valid NFC/NFD pair that passed at the end of the actual sync.
-    We never normalize the checkpoint or a remote name. Unknown hashes and
-    normalization collisions fail closed in this fallback.
+    We never normalize the checkpoint or a remote name. Unknown hashes on renamed Unicode aliases and normalization collisions
+    fail closed. Exact unchanged names retain the native size/hash comparison.
     """
     sides = []
     try:
@@ -60,18 +60,22 @@ def compare_unicode_pair(workdir):
                 normalized = unicodedata.normalize('NFC', path)
                 if normalized in rows:
                     return {'equivalent': False, 'reason': 'unicode_collision'}
-                if flag != '-' or int(size) < 0 or not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest):
-                    return {'equivalent': False, 'reason': 'unverifiable_metadata'}
-                rows[normalized] = (int(size), digest.lower())
+                if flag not in ('-', 'd') or (digest != '-' and not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest)):
+                    return {'equivalent': False, 'reason': 'unsupported_metadata'}
+                rows[normalized] = (flag, int(size), digest.lower(), path)
             sides.append(rows)
     except (OSError, ValueError):
         return {'equivalent': False, 'reason': 'unsupported_listing'}
     left, right = sides
     unmatched = len(left.keys() ^ right.keys())
-    changed = sum(left[k] != right[k] for k in left.keys() & right.keys())
-    return {'equivalent': bool(left) and unmatched == 0 and changed == 0,
+    changed = sum(left[k][:3] != right[k][:3] for k in left.keys() & right.keys())
+    unverified_aliases = sum(
+        left[k][3] != right[k][3] and (left[k][0] != '-' or left[k][1] < 0 or left[k][2] == '-')
+        for k in left.keys() & right.keys()
+    )
+    return {'equivalent': bool(left) and unmatched == 0 and changed == 0 and unverified_aliases == 0,
             'reason': 'unicode_pair_comparison', 'unmatched': unmatched,
-            'metadata_mismatch': changed, 'entries': [len(left), len(right)]}
+            'metadata_mismatch': changed, 'unverified_aliases': unverified_aliases, 'entries': [len(left), len(right)]}
 
 
 def validate(workdir, filters, *, runner=subprocess.run):
