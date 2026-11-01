@@ -58,7 +58,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: drive-copy-preview-${{ github.run_id }}
+          name: drive-copy-preview-${{ github.run_id }}-${{ github.run_attempt }}
           path: copy-result.json
           if-no-files-found: ignore
           retention-days: 7
@@ -96,7 +96,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .copy-ignore
-          key: rclone-copy-ignore-v1-main-${{ github.run_id }}
+          key: rclone-copy-ignore-v1-main-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Prepare terminal aggregate
         if: always() && steps.copy.outcome == 'success'
         env:
@@ -114,7 +114,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: drive-copy-result-${{ github.run_id }}
+          name: drive-copy-result-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             copy-result.json
             backup-summary.json
