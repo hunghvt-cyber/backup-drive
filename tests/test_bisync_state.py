@@ -119,6 +119,8 @@ class StateTests(unittest.TestCase):
         self.listing(state.PAIR[1], [(b, 100, 'md5:' + 'b' * 32)])
         self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
         self.listing(state.PAIR[1], [(a, 100, digest), (b, 100, digest)])
+        self.assertTrue(state.compare_unicode_pair(self.root)['equivalent'])
+        self.listing(state.PAIR[1], [(a, 100, digest), (b, 100, 'md5:' + 'b' * 32)])
         self.assertEqual(state.compare_unicode_pair(self.root)['reason'], 'unicode_collision')
 
     def test_unicode_comparison_rejects_unverifiable_or_malformed_listings(self):

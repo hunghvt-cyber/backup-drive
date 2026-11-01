@@ -39,15 +39,16 @@ def compare_unicode_pair(workdir):
 
     rclone's standalone check starts with an empty runtime AliasMap, so it can
     reject a valid NFC/NFD pair that passed at the end of the actual sync.
-    We never normalize the checkpoint or a remote name. Unknown hashes on renamed Unicode aliases and normalization collisions
-    fail closed. Exact unchanged names retain the native size/hash comparison.
+    We never normalize the checkpoint or a remote name. Unknown hashes on renamed aliases, colliding paths with different content,
+    and ambiguous duplicate records fail closed. Redundant Unicode variants
+    are accepted only with identical known size/MD5; all originals are retained. Exact unchanged names retain the native size/hash comparison.
     """
     sides = []
     collision_stats = []
     try:
         for name in PAIR:
             rows = {}
-            collisions = different_content = exact_duplicates = row_count = 0
+            collisions = different_content = exact_duplicates = unverified_duplicates = row_count = 0
             lines = (Path(workdir) / name).read_text().splitlines()
             if not lines or not lines[0].startswith('# bisync listing v1 from '):
                 return {'equivalent': False, 'reason': 'unsupported_listing'}
@@ -66,6 +67,7 @@ def compare_unicode_pair(workdir):
                     prior = rows[normalized]
                     exact_duplicates += path == prior[3]
                     different_content += (flag, int(size), digest.lower()) != prior[:3]
+                    unverified_duplicates += flag != '-' or int(size) < 0 or not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest)
                     continue
                 if flag not in ('-', 'd') or (digest != '-' and not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest)):
                     return {'equivalent': False, 'reason': 'unsupported_metadata'}
@@ -73,10 +75,10 @@ def compare_unicode_pair(workdir):
             sides.append(rows)
             collision_stats.append({'rows': row_count, 'unique_nfc': len(rows),
                                     'collisions': collisions, 'exact_duplicates': exact_duplicates,
-                                    'different_metadata': different_content})
+                                    'different_metadata': different_content, 'unverified_duplicates': unverified_duplicates})
     except (OSError, ValueError):
         return {'equivalent': False, 'reason': 'unsupported_listing'}
-    if any(side['collisions'] for side in collision_stats):
+    if any(side['different_metadata'] or side['exact_duplicates'] or side['unverified_duplicates'] for side in collision_stats):
         return {'equivalent': False, 'reason': 'unicode_collision', 'sides': collision_stats}
     left, right = sides
     unmatched = len(left.keys() ^ right.keys())
@@ -87,7 +89,7 @@ def compare_unicode_pair(workdir):
     )
     return {'equivalent': bool(left) and unmatched == 0 and changed == 0 and unverified_aliases == 0,
             'reason': 'unicode_pair_comparison', 'unmatched': unmatched,
-            'metadata_mismatch': changed, 'unverified_aliases': unverified_aliases, 'entries': [len(left), len(right)]}
+            'metadata_mismatch': changed, 'unverified_aliases': unverified_aliases, 'sides': collision_stats, 'entries': [len(left), len(right)]}
 
 
 def validate(workdir, filters, *, runner=subprocess.run):
