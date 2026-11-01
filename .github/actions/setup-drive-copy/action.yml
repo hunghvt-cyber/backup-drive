@@ -27,7 +27,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: .copy-ignore
-        key: rclone-copy-ignore-v1-main-${{ github.run_id }}
+        key: rclone-copy-ignore-v1-main-${{ github.run_id }}-${{ github.run_attempt }}
         restore-keys: rclone-copy-ignore-v1-main-
     - name: Read legacy ignore list without bisync state
       if: steps.ignored.outputs.cache-matched-key == ''
