@@ -33,6 +33,12 @@ FATAL_MARKERS = (
     "quotaExceeded",
     "rateLimitExceeded",
     "context deadline exceeded",
+    "path1 and path2 are out of sync",
+    "Path1 file not found in Path2",
+    "Path2 file not found in Path1",
+    "Graceful shutdown failed",
+    "Bisync interrupted. Must run --resync",
+    "cannot find prior Path1 or Path2 listings",
 )
 
 
@@ -222,7 +228,7 @@ def parse_log(
 
         return
 
-    full_log = "\n".join(lines)
+    full_log = re.sub(r"\x1b\[[0-9;]*m", "", "\n".join(lines))
 
     blocks = parse_error_blocks(lines)
 

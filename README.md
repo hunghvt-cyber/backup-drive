@@ -1,3 +1,5 @@
+> 01/11: [bisync checkpoint incident and recovery gates](docs/BISYNC-STATE-RECOVERY-20261101.md) — distinguish failed shutdown from a safe pause; no automatic resync.
+
 > 29/10: [backup/report recovery](docs/BACKUP-REPORT-RECOVERY-20261029.md) — canonical repo names, compatible GAS reports and guarded runtime fixes; live validation remains separate.
 
 # Google Drive ↔ Koofr Backup
@@ -43,7 +45,7 @@ Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/Google
 - **Tự động:** Tối đa **35 phút/job**, gồm **29 phút** cho Rclone Bisync và thời gian dự phòng để dừng có kiểm soát, lưu state/cache, artifact và báo cáo. Đây là giới hạn cấu hình đang giữ; không suy từ nó rằng repo hiện còn private.
 - **Khôi phục thủ công khi thật cần thiết:** Actions → Run workflow → `extended_budget=true` để cho phép lại **330 phút/job, 300 phút rclone**. Tùy chọn này không tự bật và có nguy cơ tiêu tốn hạn mức miễn phí; `resync/reset` chỉ chọn khi hiểu rõ hậu quả.
 - Nguồn duy nhất cho lịch/ngân sách Drive + Photos: [FREE_TIER_BUDGET.md](https://github.com/hunghvt-cyber/google-photos-koofr/blob/main/docs/FREE_TIER_BUDGET.md). Không chép lịch Photos sang repo Drive; cron trong workflow từng repo là nguồn thực thi.
-- Duy trì trạng thái Bisync giữa các lượt chạy; resync ban đầu chưa hoàn tất sẽ tiếp tục ở lượt sau.
+- Chỉ dùng checkpoint đã qua kiểm tra cặp danh sách bằng rclone. Timeout dừng không sạch là lỗi; không tự tiếp tục resync chưa hoàn tất.
 - `--max-delete 25`, `--backup-dir2`, `--recover`, `--resilient`, `--checksum`.
 - File không đồng bộ được sẽ được ghi nhận trong danh sách bỏ qua; không nên coi là đã backup.
 
