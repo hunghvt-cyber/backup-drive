@@ -82,14 +82,21 @@ def compare_unicode_pair(workdir):
         return {'equivalent': False, 'reason': 'unicode_collision', 'sides': collision_stats}
     left, right = sides
     unmatched = len(left.keys() ^ right.keys())
-    changed = sum(left[k][:3] != right[k][:3] for k in left.keys() & right.keys())
+    # Match rclone 1.75.2 sizeDiffers/hashDiffers for exact names: unknown
+    # metadata is not a proven difference. Unicode aliases still require
+    # identical known size/MD5 below, so unknown data cannot establish aliases.
+    def differs(a, b):
+        return a[0] != b[0] or (a[1] >= 0 and b[1] >= 0 and a[1] != b[1]) or (
+            a[2] != '-' and b[2] != '-' and a[2] != b[2])
+    changed = sum(differs(left[k], right[k]) for k in left.keys() & right.keys())
+    strict_changed = sum(left[k][:3] != right[k][:3] for k in left.keys() & right.keys())
     unverified_aliases = sum(
-        left[k][3] != right[k][3] and (left[k][0] != '-' or left[k][1] < 0 or left[k][2] == '-')
+        left[k][3] != right[k][3] and (left[k][0] != '-' or left[k][1] < 0 or right[k][1] < 0 or left[k][2] == '-' or right[k][2] == '-' or left[k][:3] != right[k][:3])
         for k in left.keys() & right.keys()
     )
     return {'equivalent': bool(left) and unmatched == 0 and changed == 0 and unverified_aliases == 0,
             'reason': 'unicode_pair_comparison', 'unmatched': unmatched,
-            'metadata_mismatch': changed, 'unverified_aliases': unverified_aliases, 'sides': collision_stats, 'entries': [len(left), len(right)]}
+            'metadata_mismatch': changed, 'strict_metadata_difference': strict_changed, 'unverified_aliases': unverified_aliases, 'sides': collision_stats, 'entries': [len(left), len(right)]}
 
 
 def validate(workdir, filters, *, runner=subprocess.run):

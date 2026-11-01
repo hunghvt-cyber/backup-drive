@@ -138,3 +138,10 @@ class StateTests(unittest.TestCase):
         self.listing(state.PAIR[0], [('tài liệu', -1, '-')])
         self.listing(state.PAIR[1], [(unicodedata.normalize('NFD', 'tài liệu'), -1, '-')])
         self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
+
+    def test_exact_path_unknown_metadata_matches_native_rules_only(self):
+        self.listing(state.PAIR[0], [('document', -1, '-')])
+        self.listing(state.PAIR[1], [('document', 100, 'md5:' + 'a' * 32)])
+        result = state.compare_unicode_pair(self.root)
+        self.assertTrue(result['equivalent'])
+        self.assertEqual(result['strict_metadata_difference'], 1)
