@@ -19,7 +19,7 @@ The incident PR has an exact-branch, same-repository audit job after offline tes
 
 ## Validation status
 
-Local: 29 unit tests pass, including failed-shutdown vs clean-pause handling, native-check failure/timeout, copied check workdir, incomplete/old listing rejection, symlink rejection, global error classification, and private-path-free preview summaries. YAML parsing and shell syntax are checked separately. Hosted CI, restored-cache results and any subsequent production recovery must be recorded from actual runs below; none is claimed by this source record.
+Local: 30 unit tests pass, including failed-shutdown vs clean-pause handling, native-check failure/timeout, copied check workdir, incomplete/old listing rejection, symlink rejection, global error classification, and private-path-free preview summaries. YAML parsing and shell syntax are checked separately. Hosted CI, restored-cache results and any subsequent production recovery must be recorded from actual runs below; none is claimed by this source record.
 
 Reference: https://rclone.org/bisync/#check-sync and https://rclone.org/bisync/#graceful-shutdown .
 
@@ -27,3 +27,8 @@ Reference: https://rclone.org/bisync/#check-sync and https://rclone.org/bisync/#
 ### Hosted checkpoint qualification (PR #11)
 
 Run [41267009969](https://github.com/hunghvt-cyber/backup-drive/actions/runs/41267009969) passed 29 offline tests and restored both exact caches. The 1 November cache has no primary listing pair. The 30 October checkpoint fails standalone native listing comparison, and its Unicode equivalence check detects a collision, so the recovery preview was correctly skipped. This is **not a recovery success**. No old snapshot was substituted and no remote write was performed. Native checks now use local backend stubs with the same path labels in a temporary workdir, since they check snapshot metadata only; provider OAuth/network is irrelevant to that check. Unique NFC/NFD aliases require identical known size/MD5, while ambiguous collisions remain blocked. Current remote integrity still needs separate verification.
+
+
+Run [41267331693](https://github.com/hunghvt-cyber/backup-drive/actions/runs/41267331693) qualified the historical checkpoint under rclone's snapshot comparison rules: 11,108 logical NFC paths on each side; Koofr has 38 redundant Unicode variants with identical known size/MD5 and no differing collision metadata. Four exact-path metadata differences involve unavailable metadata under native comparison semantics; they are not content verification. Standalone native check lacks the runtime alias map, so the read-only fallback checks unique/identical-hash Unicode groups without changing original paths. Different-content or unverifiable aliases remain blocked. The first preview stopped on filter-checksum provenance after moving the filter into scratch; the audit now copies the checkpoint's recorded `.md5` beside the generated filter, letting native rclone verify unchanged contents. It never generates a new expected hash to bypass a filter change. No recovery success is claimed.
+
+A rejected checkpoint also leaves a review-required marker in the persisted control state. Subsequent scheduled runs remain blocked even if an older validated cache is available; a failed run is not silently rolled back to an older baseline.

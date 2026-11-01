@@ -143,6 +143,7 @@ def main():
     parser.add_argument('--filters', required=True)
     parser.add_argument('--exit-code', type=int)
     parser.add_argument('--log')
+    parser.add_argument('--review-marker')
     args = parser.parse_args()
     if args.exit_code is not None:
         log = Path(args.log).read_text(errors='replace') if args.log and Path(args.log).is_file() else ''
@@ -150,6 +151,13 @@ def main():
             'valid': False, 'reason': 'run_not_checkpoint_eligible'}
     else:
         result = validate(args.workdir, args.filters)
+    if args.review_marker and args.exit_code is not None:
+        marker = Path(args.review_marker)
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        if result['valid']:
+            marker.unlink(missing_ok=True)
+        else:
+            marker.touch()
     print(json.dumps(result))
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'], 'a') as out:

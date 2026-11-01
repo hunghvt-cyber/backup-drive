@@ -273,7 +273,7 @@ jobs:
               "${COMMON_ARGS[@]}" \
               2>&1 | tee "$LOG_FILE"
 
-          elif [ "${{ steps.restored_state.outputs.valid }}" = "true" ] && [ ! -f .sync-state/resync-pending ]; then
+          elif [ "${{ steps.restored_state.outputs.valid }}" = "true" ] && [ ! -f .sync-state/resync-pending ] && [ ! -f .sync-state/checkpoint-review-required ]; then
 
             echo "[MODE] NORMAL BISYNC"
 
@@ -381,7 +381,8 @@ jobs:
             --workdir "$HOME/.cache/rclone/bisync" \
             --filters "$HOME/.cache/rclone/bisync-filters.txt" \
             --exit-code "${{ steps.bisync.outputs.rclone_exit_code || '90' }}" \
-            --log bisync.log
+            --log bisync.log \
+            --review-marker .sync-state/checkpoint-review-required
 
       - name: Save Bisync State
         if: always() && steps.state_to_save.outputs.valid == 'true'

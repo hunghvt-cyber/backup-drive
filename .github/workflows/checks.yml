@@ -70,6 +70,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/bisync-helper.py build-filter .sync-state/ignored-files.txt "$RUNNER_TEMP/filter.txt" > "$RUNNER_TEMP/filter-build.log"
+          # Preserve the checkpoint's recorded filter hash; never manufacture
+          # a new expected hash or bypass rclone's filter-change protection.
+          cp "$RUNNER_TEMP/last-success/bisync-filters.txt.md5" "$RUNNER_TEMP/filter.txt.md5"
           echo "CURRENT_CHECKPOINT"
           python3 scripts/bisync_state.py --workdir "$HOME/.cache/rclone/bisync" --filters "$RUNNER_TEMP/filter.txt"
       - name: Validate last success for preview
@@ -102,4 +105,4 @@ jobs:
       - name: Remove temporary credentials and raw private logs
         if: always()
         run: |
-          rm -f "$HOME/.config/rclone/rclone.conf" "$RUNNER_TEMP/recovery-preview.log" "$RUNNER_TEMP/filter.txt" "$RUNNER_TEMP/filter-build.log"
+          rm -f "$HOME/.config/rclone/rclone.conf" "$RUNNER_TEMP/recovery-preview.log" "$RUNNER_TEMP/filter.txt" "$RUNNER_TEMP/filter.txt.md5" "$RUNNER_TEMP/filter-build.log"

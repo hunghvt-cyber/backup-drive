@@ -20,6 +20,11 @@ def summarize(log, exit_code):
         'errors': sum(bool(re.search(r'\bERROR\s*:', x)) for x in lines),
         'ungraceful_shutdown': 'Graceful shutdown failed' in log,
         'state_mismatch': 'path1 and path2 are out of sync' in log,
+        'filters_checksum_missing': 'filters file md5 hash not found' in log,
+        'filters_changed': 'filters file has changed' in log,
+        'lock_blocked': 'prior lock file' in log or 'existing lock' in log,
+        'missing_listings': 'cannot find prior' in log or 'cannot read prior listing' in log,
+        'auth_error': 'invalid_grant' in log or '401 Unauthorized' in log,
     }
 
 
