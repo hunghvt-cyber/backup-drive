@@ -66,7 +66,8 @@ class StateTests(unittest.TestCase):
     def test_exit_124_is_not_automatically_a_safe_pause(self):
         self.assertFalse(state.eligible(124, 'Graceful shutdown failed.'))
         self.assertFalse(state.eligible(124, 'Interrupted without confirmation'))
-        self.assertTrue(state.eligible(124, 'Graceful shutdown completed successfully.'))
+        self.assertTrue(state.eligible(124, '2026/11/01 01:00:00 NOTICE: Graceful shutdown completed successfully.'))
+        self.assertFalse(state.eligible(124, '2026/11/01 01:00:00 INFO : folder/Graceful shutdown completed successfully.: Copied'))
         self.assertFalse(state.eligible(124, 'Graceful shutdown completed successfully.\nMust run --resync'))
         self.assertFalse(state.eligible(7, 'Graceful shutdown completed successfully.'))
         self.assertTrue(state.eligible(0, 'Bisync successful'))
@@ -145,3 +146,29 @@ class StateTests(unittest.TestCase):
         result = state.compare_unicode_pair(self.root)
         self.assertTrue(result['equivalent'])
         self.assertEqual(result['strict_metadata_difference'], 1)
+
+    def test_failed_run_persists_review_fence_and_validated_run_clears_it(self):
+        from unittest.mock import patch
+        marker = self.root / 'review'
+        log = self.root / 'run.log'
+        log.write_text('Graceful shutdown failed.')
+        args = ['bisync_state.py', '--workdir', str(self.root), '--filters', str(self.filters),
+                '--exit-code', '124', '--log', str(log), '--review-marker', str(marker)]
+        with patch('sys.argv', args), contextlib.redirect_stdout(io.StringIO()):
+            state.main()
+        self.assertTrue(marker.exists())
+        args[args.index('124')] = '0'
+        log.write_text('Bisync successful')
+        with patch('sys.argv', args), patch.object(state, 'validate', return_value={'valid': True, 'reason': 'fixture'}), contextlib.redirect_stdout(io.StringIO()):
+            state.main()
+        self.assertFalse(marker.exists())
+
+    def test_read_only_validation_never_removes_existing_review_fence(self):
+        from unittest.mock import patch
+        marker = self.root / 'review'
+        marker.touch()
+        args = ['bisync_state.py', '--workdir', str(self.root), '--filters', str(self.filters),
+                '--review-marker', str(marker)]
+        with patch('sys.argv', args), patch.object(state, 'validate', return_value={'valid': True, 'reason': 'fixture'}), contextlib.redirect_stdout(io.StringIO()):
+            state.main()
+        self.assertTrue(marker.exists())

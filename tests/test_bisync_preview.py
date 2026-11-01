@@ -10,8 +10,8 @@ class PreviewTests(unittest.TestCase):
         log = ('INFO : - Path2 Queue copy to Path1 - PRIVATE.txt\n'
                'INFO : - Path1 Queue copy to Path2 - PRIVATE.txt\n'
                'INFO : - Do queued deletes on Path1\n'
-               'INFO : - Queue delete - Path1 - PRIVATE.txt\n'
-               'INFO : - Queue delete - Path2 - PRIVATE.txt\n'
+               'INFO : - Path1 Queue delete - PRIVATE.txt\n'
+               'INFO : - Path2 Queue delete - PRIVATE.txt\n'
                'INFO : Bisync successful\n')
         result = summarize(log, 0)
         self.assertEqual(result['queue_copy_to_drive'], 1)

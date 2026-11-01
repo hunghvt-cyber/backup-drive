@@ -27,7 +27,9 @@ def eligible(exit_code, log):
     )):
         return False
     return exit_code == 0 or (
-        exit_code == 124 and 'Graceful shutdown completed successfully.' in text
+        exit_code == 124 and bool(re.search(
+            r'^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} (?:INFO|NOTICE)\s*:\s*Graceful shutdown completed successfully\.$',
+            text, re.MULTILINE))
     )
 
 
@@ -133,7 +135,7 @@ def validate(workdir, filters, *, runner=subprocess.run):
         return {'valid': False, 'reason': 'native_check_failed'}
     comparison = compare_unicode_pair(workdir)
     return {'valid': comparison['equivalent'],
-            'reason': 'unique_unicode_pair_valid' if comparison['equivalent'] else 'listing_pair_mismatch',
+            'reason': 'unicode_pair_valid' if comparison['equivalent'] else 'listing_pair_mismatch',
             'comparison': comparison}
 
 
