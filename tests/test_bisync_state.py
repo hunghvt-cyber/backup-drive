@@ -38,6 +38,9 @@ class StateTests(unittest.TestCase):
         self.pair()
         def run(args, **kw):
             self.assertIn('--check-sync=only', args)
+            self.assertEqual(kw['env']['RCLONE_CONFIG_GDRIVE_TYPE'], 'local')
+            self.assertEqual(kw['env']['RCLONE_CONFIG_KOOFR_TYPE'], 'local')
+            self.assertIn('--config', args)
             self.assertNotIn('--resync', args)
             workdir = Path(args[args.index('--workdir') + 1])
             self.assertNotEqual(workdir, self.root)

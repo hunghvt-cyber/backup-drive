@@ -90,12 +90,18 @@ def validate(workdir, filters, *, runner=subprocess.run):
         for name in PAIR:
             shutil.copyfile(workdir / name, Path(tmp) / name)
         try:
+            # check-sync=only reads listing snapshots, not remotes. Keep the
+            # original remote labels but use local backend stubs to avoid
+            # OAuth/network requests while performing this metadata check.
             result = runner([
                 'rclone', 'bisync', 'gdrive:/', 'koofr:/GoogleBackup',
                 '--workdir', tmp, '--check-sync=only', '--checksum',
                 '--filters-file', str(filters.resolve()), '--log-level', 'ERROR',
-                '--color=NEVER',
-            ], capture_output=True, text=True, timeout=45, check=False)
+                '--color=NEVER', '--config', os.devnull,
+            ], capture_output=True, text=True, timeout=45, check=False,
+                env={**{k: v for k, v in os.environ.items() if not k.startswith('RCLONE_')},
+                     'RCLONE_CONFIG_GDRIVE_TYPE': 'local',
+                     'RCLONE_CONFIG_KOOFR_TYPE': 'local'})
         except (OSError, subprocess.TimeoutExpired):
             return {'valid': False, 'reason': 'listing_check_unavailable'}
     if result.returncode == 0:
