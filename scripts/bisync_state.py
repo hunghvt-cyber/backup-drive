@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import unicodedata
 
 BASE = 'gdrive_..koofr__GoogleBackup'
 PAIR = (BASE + '.path1.lst', BASE + '.path2.lst')
@@ -28,6 +29,49 @@ def eligible(exit_code, log):
     return exit_code == 0 or (
         exit_code == 124 and 'Graceful shutdown completed successfully.' in text
     )
+
+
+LINE = re.compile(r'^(\S) +(-?\d+) (\S+) (\S+) (\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{9}[+-]\d{4}) (".+")$')
+
+
+def compare_unicode_pair(workdir):
+    """Read-only NFC equivalence for unique paths with identical size/hash.
+
+    rclone's standalone check starts with an empty runtime AliasMap, so it can
+    reject a valid NFC/NFD pair that passed at the end of the actual sync.
+    We never normalize the checkpoint or a remote name. Unknown hashes and
+    normalization collisions fail closed in this fallback.
+    """
+    sides = []
+    try:
+        for name in PAIR:
+            rows = {}
+            lines = (Path(workdir) / name).read_text().splitlines()
+            if not lines or not lines[0].startswith('# bisync listing v1 from '):
+                return {'equivalent': False, 'reason': 'unsupported_listing'}
+            for line in lines[1:]:
+                if not line:
+                    continue
+                match = LINE.fullmatch(line)
+                if not match:
+                    return {'equivalent': False, 'reason': 'unsupported_listing'}
+                flag, size, digest, _, _, encoded = match.groups()
+                path = json.loads(encoded)
+                normalized = unicodedata.normalize('NFC', path)
+                if normalized in rows:
+                    return {'equivalent': False, 'reason': 'unicode_collision'}
+                if flag != '-' or int(size) < 0 or not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest):
+                    return {'equivalent': False, 'reason': 'unverifiable_metadata'}
+                rows[normalized] = (int(size), digest.lower())
+            sides.append(rows)
+    except (OSError, ValueError):
+        return {'equivalent': False, 'reason': 'unsupported_listing'}
+    left, right = sides
+    unmatched = len(left.keys() ^ right.keys())
+    changed = sum(left[k] != right[k] for k in left.keys() & right.keys())
+    return {'equivalent': bool(left) and unmatched == 0 and changed == 0,
+            'reason': 'unicode_pair_comparison', 'unmatched': unmatched,
+            'metadata_mismatch': changed, 'entries': [len(left), len(right)]}
 
 
 def validate(workdir, filters, *, runner=subprocess.run):
@@ -50,8 +94,16 @@ def validate(workdir, filters, *, runner=subprocess.run):
             ], capture_output=True, text=True, timeout=45, check=False)
         except (OSError, subprocess.TimeoutExpired):
             return {'valid': False, 'reason': 'listing_check_unavailable'}
-    return {'valid': result.returncode == 0,
-            'reason': 'listing_pair_valid' if result.returncode == 0 else 'listing_pair_mismatch'}
+    if result.returncode == 0:
+        return {'valid': True, 'reason': 'listing_pair_valid'}
+    # Native check errors about auth/config/timeout must never be bypassed.
+    native_log = ANSI.sub('', result.stdout + result.stderr)
+    if 'path1 and path2 are out of sync' not in native_log:
+        return {'valid': False, 'reason': 'native_check_failed'}
+    comparison = compare_unicode_pair(workdir)
+    return {'valid': comparison['equivalent'],
+            'reason': 'unique_unicode_pair_valid' if comparison['equivalent'] else 'listing_pair_mismatch',
+            'comparison': comparison}
 
 
 def main():

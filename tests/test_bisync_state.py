@@ -89,3 +89,38 @@ class StateTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             helper.parse_log(log, self.root / 'ignored', self.root / 'report', result)
         self.assertIn('has_unignorable_errors=false', result.read_text())
+
+    def listing(self, name, rows):
+        import json
+        text = '# bisync listing v1 from 2026-10-30T00:00:00.000000000+0000\n'
+        for path, size, digest in rows:
+            text += f'- {size:8} {digest} - 2026-10-30T00:00:00.000000000+0000 {json.dumps(path, ensure_ascii=False)}\n'
+        (self.root / name).write_text(text)
+
+    def test_unicode_equivalence_checks_metadata_and_unique_names_without_rewriting(self):
+        import unicodedata
+        a = 'tài liệu.pdf'
+        b = unicodedata.normalize('NFD', a)
+        digest = 'md5:' + 'a' * 32
+        self.listing(state.PAIR[0], [(a, 100, digest)])
+        self.listing(state.PAIR[1], [(b, 100, digest)])
+        before = (self.root / state.PAIR[1]).read_bytes()
+        self.assertTrue(state.compare_unicode_pair(self.root)['equivalent'])
+        self.assertEqual(before, (self.root / state.PAIR[1]).read_bytes())
+        native = Mock(return_value=subprocess.CompletedProcess([], 7, '', 'path1 and path2 are out of sync'))
+        self.assertTrue(state.validate(self.root, self.filters, runner=native)['valid'])
+        native = Mock(return_value=subprocess.CompletedProcess([], 7, '', 'authentication failed'))
+        self.assertFalse(state.validate(self.root, self.filters, runner=native)['valid'])
+        self.listing(state.PAIR[1], [(b, 101, digest)])
+        self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
+        self.listing(state.PAIR[1], [(b, 100, 'md5:' + 'b' * 32)])
+        self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
+        self.listing(state.PAIR[1], [(a, 100, digest), (b, 100, digest)])
+        self.assertEqual(state.compare_unicode_pair(self.root)['reason'], 'unicode_collision')
+
+    def test_unicode_comparison_rejects_unverifiable_or_malformed_listings(self):
+        self.listing(state.PAIR[0], [('sample', 100, '-')])
+        self.listing(state.PAIR[1], [('sample', 100, '-')])
+        self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
+        (self.root / state.PAIR[0]).write_text('garbage')
+        self.assertFalse(state.compare_unicode_pair(self.root)['equivalent'])
