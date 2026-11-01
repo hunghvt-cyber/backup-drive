@@ -86,6 +86,7 @@ jobs:
           RCLONE_DRIVE_PACER_BURST: '1'
         run: |
           set -uo pipefail
+          set +e
           # Only scratch listings can change. Do not save this dry-run as a cache.
           cp -a "$RUNNER_TEMP/last-success/bisync" "$RUNNER_TEMP/preview-state"
           timeout --signal=INT --kill-after=120s 1740s rclone bisync \

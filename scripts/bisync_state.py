@@ -43,9 +43,11 @@ def compare_unicode_pair(workdir):
     fail closed. Exact unchanged names retain the native size/hash comparison.
     """
     sides = []
+    collision_stats = []
     try:
         for name in PAIR:
             rows = {}
+            collisions = different_content = exact_duplicates = row_count = 0
             lines = (Path(workdir) / name).read_text().splitlines()
             if not lines or not lines[0].startswith('# bisync listing v1 from '):
                 return {'equivalent': False, 'reason': 'unsupported_listing'}
@@ -58,14 +60,24 @@ def compare_unicode_pair(workdir):
                 flag, size, digest, _, _, encoded = match.groups()
                 path = json.loads(encoded)
                 normalized = unicodedata.normalize('NFC', path)
+                row_count += 1
                 if normalized in rows:
-                    return {'equivalent': False, 'reason': 'unicode_collision'}
+                    collisions += 1
+                    prior = rows[normalized]
+                    exact_duplicates += path == prior[3]
+                    different_content += (flag, int(size), digest.lower()) != prior[:3]
+                    continue
                 if flag not in ('-', 'd') or (digest != '-' and not re.fullmatch(r'md5:[a-fA-F0-9]{32}', digest)):
                     return {'equivalent': False, 'reason': 'unsupported_metadata'}
                 rows[normalized] = (flag, int(size), digest.lower(), path)
             sides.append(rows)
+            collision_stats.append({'rows': row_count, 'unique_nfc': len(rows),
+                                    'collisions': collisions, 'exact_duplicates': exact_duplicates,
+                                    'different_metadata': different_content})
     except (OSError, ValueError):
         return {'equivalent': False, 'reason': 'unsupported_listing'}
+    if any(side['collisions'] for side in collision_stats):
+        return {'equivalent': False, 'reason': 'unicode_collision', 'sides': collision_stats}
     left, right = sides
     unmatched = len(left.keys() ^ right.keys())
     changed = sum(left[k][:3] != right[k][:3] for k in left.keys() & right.keys())
