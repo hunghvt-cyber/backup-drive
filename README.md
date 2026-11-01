@@ -15,9 +15,13 @@ Chủ hệ thống chọn **Drive là nguồn chuẩn; Koofr chỉ nhận bản 
 
 Workflow giữ đường dẫn `.github/workflows/bisync.yml` để tương thích báo cáo, nhưng tên hiển thị là **Google Drive to Koofr Backup**. Lịch vẫn `0 19 * * *` UTC, dự kiến **02:00 Việt Nam**; GitHub có thể chạy trễ. Giữ 35 phút/job, 29 phút cho mỗi lượt rclone cộng dự phòng dừng/lưu báo cáo. Copy có thể chạy lại mà không cần dựng baseline; quá thời gian được báo `paused`, workflow không được coi là đã hoàn tất backup.
 
-`Run workflow` có một tùy chọn `dry_run`: mặc định bật để chỉ xem thử; tắt khi muốn chạy backup thật. Preview không phát báo cáo backup lên GAS. Trong đợt chuyển đổi, một push thay đổi hồ sơ `deploy/drive-copy-cutover-20261101.json` chạy preview trước; chỉ khi preview hoàn tất mới cho phép job copy thật. Đây không phải cron mới.
+`Run workflow` có một tùy chọn `dry_run`: mặc định bật để chỉ xem thử; tắt khi muốn chạy backup thật. Preview không phát báo cáo backup lên GAS. Đợt chuyển đổi đầu tiên đã chạy preview trước rồi mới copy thật. Trigger push một lần được gỡ sau nghiệm thu; hồ sơ `deploy/drive-copy-cutover-20261101.json` giữ lại làm bằng chứng quyết định. Các commit source/tài liệu không tự khởi chạy backup; chỉ còn lịch cũ và Run workflow.
 
 Báo cáo nhỏ, không có tên file, tiếp tục đi Actions → GAS/Drive → Homepage qua cùng source `gdrive-koofr`. Trạng thái truyền dữ liệu và phát báo cáo được kiểm tra riêng. Artifact mới chỉ có aggregate, lưu 7 ngày; raw log/danh sách đường dẫn không đưa lên artifact công khai. Ignored list có cache riêng nhỏ; không lưu thêm bisync state.
+
+## Lượt đầu đã xác minh — 01/11/2026
+
+[Run 41277152906](https://github.com/hunghvt-cyber/backup-drive/actions/runs/41277152906) kết thúc thành công: copy exit 0 lúc **13:03:29 Việt Nam**, signed GAS ACK và API Homepage HTTP 200 cùng `run_id`, `status=success`, `recovered_previous=false`. Đối chiếu ghi nhận 18 mục thiếu ở đích, 11.137 mục khớp và 3 mục chỉ có ở Koofr được giữ. Vẫn có 28 mục bị loại trừ, cảnh báo shortcut hỏng và 23 duplicate notices; không suy ra mọi object trên Drive đã có bản sao. Chi tiết và giới hạn ở hồ sơ chuyển đổi.
 
 ## Tiếp quản
 
