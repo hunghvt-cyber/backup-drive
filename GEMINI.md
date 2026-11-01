@@ -1,18 +1,11 @@
-# Backup GDrive Koofr Operating Rules
+# Drive → Koofr operating rules
 
-This file supplements the Global `GEMINI.md` with rules specific to the Rclone Bisync backup system.
+Current policy approved 1 November 2026: Google Drive is authoritative; Koofr receives a non-deleting one-way backup.
 
-## 1. Rclone Bisync Handling
-- **Fatal Errors**: Recognise fatal markers (e.g., "Bisync critical error", "invalid_grant", "quotaExceeded"). Do not retry automatically if these occur.
-- **Ignorable Errors**: Certain errors like "insufficientFilePermissions" or "FileBlocked" may be ignored by the helper script.
-
-## 2. Google Drive Specifics
-- **Dangling Shortcuts**: "can't read dangling shortcut" is a permanent source error. Do not treat it as a transient failure.
-- **Quota**: Monitor for "Error 429" or "Error 500" which typically indicate API rate limiting or quota exhaustion.
-
-## 3. Data Safety
-- **Source Protection**: The primary goal is backing up GDrive to Koofr. Avoid any `bisync` configuration that allows unintended deletion on the GDrive source.
-- **Validation**: Use the `bisync-helper.py` script to wrap rclone operations for better error classification.
-
-## 4. Deployment
-- The system runs primarily via GitHub Actions (`.github/workflows/bisync.yml`).
+- Use only the fixed `rclone copy gdrive: koofr:GoogleBackup` command builder in `scripts/drive_copy.py`.
+- Never write back to Drive, use bisync/resync/reset, delete Koofr-only files, or deduplicate either remote as a side effect of maintenance.
+- Keep replaced Koofr files in the separate per-run `GoogleBackup-Versions` namespace. Do not auto-clean it.
+- Preserve Tapo-Archive exclusions and the existing ignore list. Ignored/duplicate/unreadable files are not proof of complete coverage.
+- Failed/quota/auth errors remain visible; no unsafe automatic retry. Preview must not publish a real backup report.
+- Keep secrets and raw paths out of public logs/artifacts. Validate direction, extra-file retention, replaced-version preservation and idempotency using native local-fixture tests.
+- Production workflow keeps `.github/workflows/bisync.yml` for report identity compatibility. Read README and the dated cutover evidence before operations. Old bisync documentation is historical.

@@ -1,68 +1,29 @@
-> 01/11: [bisync checkpoint incident and recovery gates](docs/BISYNC-STATE-RECOVERY-20261101.md) — distinguish failed shutdown from a safe pause; no automatic resync.
+# Google Drive → Koofr Backup
 
-> 29/10: [backup/report recovery](docs/BACKUP-REPORT-RECOVERY-20261029.md) — canonical repo names, compatible GAS reports and guarded runtime fixes; live validation remains separate.
+Chủ hệ thống chọn **Drive là nguồn chuẩn; Koofr chỉ nhận bản sao** ngày 01/11/2026. Mã hiện hành dùng `rclone copy`, không còn bisync hai chiều. Trạng thái chạy thật phải đọc từ [Actions](https://github.com/hunghvt-cyber/backup-drive/actions/workflows/bisync.yml), không suy từ commit hoặc CI.
 
-# Google Drive ↔ Koofr Backup
+## Chính sách dữ liệu
 
-Tự động đồng bộ hai chiều Google Drive và thư mục `koofr:/GoogleBackup` bằng Rclone Bisync.
+- Chỉ đọc `gdrive:` và ghi `koofr:GoogleBackup`; không ghi/xóa ngược về Drive.
+- File chỉ có ở Koofr được **giữ lại**. Đây là backup một chiều giữ bản dư, không phải mirror có xóa đích.
+- Khi file cùng đường dẫn trên Drive thay đổi, bản Koofr cũ được giữ tại `koofr:GoogleBackup-Versions/<run_id>-<attempt>/...` trước khi thay thế. Không có lịch tự xóa các phiên bản này.
+- Giữ nguyên bộ lọc `Tapo-Archive/` và danh sách file bỏ qua đã có. File bị bỏ qua không được coi là đã backup.
+- Dùng checksum khi có; metadata/checksum không có không chứng minh nội dung giống nhau. Các file trùng trên nguồn vẫn cần kiểm tra riêng; không tự dedupe.
+- Không cần baseline bisync, resync, reset hoặc khóa bisync. Cache/log lịch sử được giữ nguyên để điều tra; không dùng chúng để suy diễn thao tác xóa.
 
-[![Daily backup](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml/badge.svg?branch=main)](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml)
+## Vận hành
 
-## Báo cáo backup
+Workflow giữ đường dẫn `.github/workflows/bisync.yml` để tương thích báo cáo, nhưng tên hiển thị là **Google Drive to Koofr Backup**. Lịch vẫn `0 19 * * *` UTC, dự kiến **02:00 Việt Nam**; GitHub có thể chạy trễ. Giữ 35 phút/job, 29 phút cho mỗi lượt rclone cộng dự phòng dừng/lưu báo cáo. Copy có thể chạy lại mà không cần dựng baseline; quá thời gian được báo `paused`, workflow không được coi là đã hoàn tất backup.
 
-**Trạng thái workflow mới nhất:** xem badge ở trên (tự cập nhật theo GitHub Actions). **Chi tiết lượt chạy mới nhất:** [GitHub Actions](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml).
+`Run workflow` có một tùy chọn `dry_run`: mặc định bật để chỉ xem thử; tắt khi muốn chạy backup thật. Preview không phát báo cáo backup lên GAS. Trong đợt chuyển đổi, một push thay đổi hồ sơ `deploy/drive-copy-cutover-20261101.json` chạy preview trước; chỉ khi preview hoàn tất mới cho phép job copy thật. Đây không phải cron mới.
 
-### Kết quả đã xác minh — 14/10/2026
+Báo cáo nhỏ, không có tên file, tiếp tục đi Actions → GAS/Drive → Homepage qua cùng source `gdrive-koofr`. Trạng thái truyền dữ liệu và phát báo cáo được kiểm tra riêng. Artifact mới chỉ có aggregate, lưu 7 ngày; raw log/danh sách đường dẫn không đưa lên artifact công khai. Ignored list có cache riêng nhỏ; không lưu thêm bisync state.
 
-| Chỉ số | Kết quả |
-|---|---|
-| Run | [#38482597215](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38482597215) |
-| Rclone Bisync | **Thành công** (`exit code 0`) |
-| Dữ liệu truyền | **20.834 GiB** (100% theo Rclone) |
-| Tốc độ trung bình | **6.901 MiB/s** |
-| File đang bỏ qua | **28** |
-| File mới bị bỏ qua | **0** |
-| Lỗi không thể bỏ qua | **Không** |
-| Lưu trạng thái cho lần tiếp theo | **Thành công** |
-| Hoàn tất | **07:56:52, giờ Việt Nam** |
+## Tiếp quản
 
-> **Lưu ý:** Các số liệu trong bảng là ảnh chụp của lượt chạy 14/10/2026, **không tự cập nhật**. Badge trạng thái và trang Actions ở trên phản ánh các lượt chạy mới. Dữ liệu 100% không bao gồm 28 file đã được cấu hình bỏ qua.
+- [Chính sách và bằng chứng chuyển một chiều](docs/DRIVE-SOURCE-COPY-20261101.md).
+- [Sự cố checkpoint bisync trước chuyển đổi](docs/BISYNC-STATE-RECOVERY-20261101.md).
+- [Báo cáo GAS](docs/REPORTS-GAS.md), [khôi phục đường báo cáo theo tên repo](docs/BACKUP-REPORT-RECOVERY-20261029.md).
+- [Homepage](https://github.com/hunghvt-cyber/web-home), [NAS AIO](https://github.com/hunghvt-cyber/0219nas-aio).
 
-**Cảnh báo:** Log ghi nhận một Google Drive shortcut bị hỏng (dangling shortcut); không làm lượt đồng bộ thất bại. Rà soát danh sách file bỏ qua trong artifact để tránh bỏ sót dữ liệu quan trọng.
-
-[**Xem báo cáo và tải log của lượt chạy 14/10/2026**](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/runs/38482597215/artifacts/11861574820)
-
-## Thư mục loại trừ
-
-- `Tapo-Archive/` ở thư mục gốc Google Drive và Koofr được loại trừ khỏi bisync, gồm toàn bộ tệp và thư mục con.
-- Bộ lọc được tạo trong `scripts/bisync-helper.py`; không tự xóa dữ liệu Tapo đã có trên Koofr.
-- **Thay đổi bộ lọc làm thay đổi checksum của trạng thái bisync.** Lần chạy đầu sau thay đổi có thể yêu cầu chạy `--resync` có kiểm soát để tái tạo baseline. Không bật `reset` hoặc xóa dữ liệu tự động.
-- Muốn thu hồi dung lượng, cần kiểm tra và xóa riêng bản sao `GoogleBackup/Tapo-Archive` trên Koofr sau khi xác nhận dữ liệu gốc trên Google Drive còn đầy đủ.
-
-## Lịch chạy và an toàn
-
-- Đồng bộ hằng ngày lúc **02:00 giờ Việt Nam** theo [workflow](.github/workflows/bisync.yml).
-- **Tự động:** Tối đa **35 phút/job**, gồm **29 phút** cho Rclone Bisync và thời gian dự phòng để dừng có kiểm soát, lưu state/cache, artifact và báo cáo. Đây là giới hạn cấu hình đang giữ; không suy từ nó rằng repo hiện còn private.
-- **Khôi phục thủ công khi thật cần thiết:** Actions → Run workflow → `extended_budget=true` để cho phép lại **330 phút/job, 300 phút rclone**. Tùy chọn này không tự bật và có nguy cơ tiêu tốn hạn mức miễn phí; `resync/reset` chỉ chọn khi hiểu rõ hậu quả.
-- Nguồn duy nhất cho lịch/ngân sách Drive + Photos: [FREE_TIER_BUDGET.md](https://github.com/hunghvt-cyber/google-photos-koofr/blob/main/docs/FREE_TIER_BUDGET.md). Không chép lịch Photos sang repo Drive; cron trong workflow từng repo là nguồn thực thi.
-- Chỉ dùng checkpoint đã qua kiểm tra cặp danh sách bằng rclone. Timeout dừng không sạch là lỗi; không tự tiếp tục resync chưa hoàn tất.
-- `--max-delete 25`, `--backup-dir2`, `--recover`, `--resilient`, `--checksum`.
-- File không đồng bộ được sẽ được ghi nhận trong danh sách bỏ qua; không nên coi là đã backup.
-
-## Xem báo cáo hằng ngày
-
-Vào [Actions → Two-Way Sync](https://github.com/hunghvt-cyber/my-backup-gdrive-koofr/actions/workflows/bisync.yml), mở lượt chạy mới nhất, xem **Summary** và tải artifact `bisync-report-<run_id>` để đọc `bisync.log` và danh sách file bỏ qua.
-
-## Báo cáo Homepage qua GAS/Drive
-
-Chỉ xuất aggregate đã lọc; không coi publish thành công là backup media thành công.
-
-- Source workflow mặc định `REPORT_BACKEND=gas-drive`; dùng variable
-  `REPORT_GAS_URL` và secret `REPORT_GAS_KEY`. Nhánh Blob chỉ còn lựa chọn legacy
-  rõ ràng, không phải mặc định hoặc fallback của Homepage.
-- Hai feed đã phục hồi HTTP 200 ngày 20/10; đây là bằng chứng có thời điểm,
-  chưa phải phép đo mới ngày 22/10. Xem [hồ sơ vận hành](docs/REPORTS-GAS.md).
-- Không sửa engine, filter, state, lịch, reset/resync hoặc media để sửa báo cáo.
-
-Nguồn tích hợp/API: [Homepage OPERATIONS](https://github.com/hunghvt-cyber/Homepage-nas/blob/main/docs/OPERATIONS.md).
-Bản đồ tổng thể: [NAS AIO](https://github.com/hunghvt-cyber/0219nas-aio).
+Bằng chứng bisync cũ (ví dụ [14/10](https://github.com/hunghvt-cyber/backup-drive/actions/runs/38482597215)) là lịch sử. Không bật lại luồng ghi hai chiều từ hướng dẫn cũ.

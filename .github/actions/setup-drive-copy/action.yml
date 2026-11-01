@@ -1,0 +1,49 @@
+name: Configure fixed-direction copy
+inputs:
+  rclone-config:
+    required: true
+    description: Existing base64 rclone configuration
+runs:
+  using: composite
+  steps:
+    - name: Install pinned rclone
+      shell: bash
+      run: |
+        set -euo pipefail
+        curl -fsS --max-time 90 -o "$RUNNER_TEMP/rclone.zip" https://downloads.rclone.org/v1.75.2/rclone-v1.75.2-linux-amd64.zip
+        unzip -q "$RUNNER_TEMP/rclone.zip" -d "$RUNNER_TEMP/rclone-bin"
+        echo "$RUNNER_TEMP/rclone-bin/rclone-v1.75.2-linux-amd64" >> "$GITHUB_PATH"
+    - name: Configure private credentials
+      shell: bash
+      env:
+        RCLONE_CONFIG_CONTENT: ${{ inputs.rclone-config }}
+      run: |
+        set -euo pipefail
+        umask 077
+        mkdir -p "$HOME/.config/rclone"
+        printf '%s' "$RCLONE_CONFIG_CONTENT" | base64 --decode > "$HOME/.config/rclone/rclone.conf"
+    - name: Restore copy ignore list
+      id: ignored
+      uses: actions/cache/restore@v4
+      with:
+        path: .copy-ignore
+        key: rclone-copy-ignore-v1-main-${{ github.run_id }}
+        restore-keys: rclone-copy-ignore-v1-main-
+    - name: Read legacy ignore list without bisync state
+      if: steps.ignored.outputs.cache-matched-key == ''
+      uses: actions/cache/restore@v4
+      with:
+        path: .sync-state
+        key: rclone-ignored-files-main-41246828486
+        fail-on-cache-miss: true
+    - name: Build unchanged exclusions
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        mkdir -p .copy-state .copy-ignore
+        if [ ! -f .copy-ignore/ignored-files.txt ]; then
+          cp .sync-state/ignored-files.txt .copy-ignore/ignored-files.txt
+        fi
+        cp .copy-ignore/ignored-files.txt .copy-state/ignored-files.txt
+        python3 scripts/bisync-helper.py build-filter .copy-state/ignored-files.txt .copy-state/filters.txt > "$RUNNER_TEMP/copy-filter.log"
