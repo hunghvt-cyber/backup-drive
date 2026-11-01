@@ -9,9 +9,6 @@ on:
         required: false
         type: boolean
         default: true
-  push:
-    branches: [main]
-    paths: ['deploy/drive-copy-cutover-20261101.json']
 
 concurrency:
   group: gdrive-koofr-bisync
@@ -27,21 +24,13 @@ env:
 
 jobs:
   preview:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.dry_run)
+    if: github.event_name == 'workflow_dispatch' && inputs.dry_run
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Verify approved cutover policy
-        if: github.event_name == 'push'
-        run: |
-          python3 - <<'PY'
-          import json
-          d=json.load(open('deploy/drive-copy-cutover-20261101.json'))
-          assert d == {'mode':'drive-to-koofr-copy','retain_destination_only':True,'preserve_replaced_versions':True}
-          PY
       - uses: ./.github/actions/setup-drive-copy
         with:
           rclone-config: ${{ secrets.RCLONE_CONFIG_CONTENT }}
@@ -71,7 +60,6 @@ jobs:
     if: >-
       always() && !cancelled() &&
       (github.event_name == 'schedule' ||
-       (github.event_name == 'push' && needs.preview.result == 'success') ||
        (github.event_name == 'workflow_dispatch' && inputs.dry_run == false))
     runs-on: ubuntu-24.04
     timeout-minutes: 35
